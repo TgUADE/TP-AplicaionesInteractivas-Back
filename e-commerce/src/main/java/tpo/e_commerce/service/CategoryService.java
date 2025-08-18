@@ -1,8 +1,10 @@
 package tpo.e_commerce.service;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import tpo.e_commerce.entity.Category;
@@ -10,47 +12,41 @@ import tpo.e_commerce.exceptions.CategoryDuplicateException;
 import tpo.e_commerce.exceptions.CategoryNonexistentException;
 import tpo.e_commerce.repository.CategoryRepository;
 
+@Service
 public class CategoryService {
+    
+    @Autowired
     private CategoryRepository categoryRepository;
 
-    public CategoryService() {
-        categoryRepository = new CategoryRepository();
+    public List<Category> getCategories() {
+        return categoryRepository.findAll();
     }
 
-    public ArrayList<Category> getCategories() {
-        return categoryRepository.getCategories();
+    public Optional<Category> getCategoryById(UUID categoryId) {
+        return categoryRepository.findById(categoryId);
     }
 
-    public Optional<Category> getCategoryById(int categoryId) {
-        return categoryRepository.getCategoryById(categoryId);
+    public Category createCategory(String description) throws CategoryDuplicateException {
+        Category newCategory = Category.builder()
+                .description(description)
+                .build();
+        return categoryRepository.save(newCategory);
     }
 
-    public Category createCategory(int newCategoryId, String description) throws CategoryDuplicateException {
-        ArrayList<Category> categories = categoryRepository.getCategories();
-        if (categories.stream().anyMatch(
-                category -> category.getId() == newCategoryId && category.getDescription().equals(description)))
-            throw new CategoryDuplicateException();
-        return categoryRepository.createCategory(newCategoryId, description);
+    public void deleteCategory(UUID categoryId) {
+        categoryRepository.deleteById(categoryId);
     }
 
-    public void deleteCategory(int categoryId) {
-        ArrayList<Category> categories = categoryRepository.getCategories();
-        categories.removeIf(category -> category.getId() == categoryId);
-    }
-
-    public Category updateCategory(int categoryId, String newDescription) 
+    public Category updateCategory(UUID categoryId, String newDescription) 
             throws CategoryNonexistentException {
-        // Verificar que la categoría a actualizar exista
         Optional<Category> categoryToUpdate = getCategoryById(categoryId);
-        if (!categoryToUpdate.isPresent()) {
+        if (categoryToUpdate.isEmpty()) {
             throw new CategoryNonexistentException();
         }
 
-        // Actualizar la descripción
         Category category = categoryToUpdate.get();
         category.setDescription(newDescription);
-        return category;
+        return categoryRepository.save(category);
     }
-    
 }
 

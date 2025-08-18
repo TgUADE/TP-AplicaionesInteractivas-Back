@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.Builder;
 
 @Data
+@Builder
 public class CategoryRequest {
-    private int id;
     private String description;
 }
