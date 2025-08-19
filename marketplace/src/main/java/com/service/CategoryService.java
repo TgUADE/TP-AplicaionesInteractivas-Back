@@ -1,13 +1,17 @@
 package com.service;
 
-import java.util.ArrayList;
+
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import com.entity.Category;
 import com.exceptions.CategoryDuplicateException;
 
 public interface CategoryService {
-    ArrayList<Category> getCategories();
-    Optional<Category> getCategoryById(int categoryId);
-    Category createCategory(int newCategoryId, String description) throws CategoryDuplicateException;
+    List<Category> getCategories();
+    Optional<Category> getCategoryById(UUID categoryId);
+    Category createCategory(String description) throws CategoryDuplicateException;
+    Category deleteCategory(UUID categoryId);
+    Category updateCategory(UUID categoryId, String description);
 }

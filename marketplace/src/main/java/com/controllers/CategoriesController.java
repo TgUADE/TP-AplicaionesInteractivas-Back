@@ -8,14 +8,17 @@ import com.entity.dto.CategoryRequest;
 import com.exceptions.CategoryDuplicateException;
 
 import java.net.URI;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import com.service.CategoryService;
 
@@ -28,12 +31,12 @@ public class CategoriesController {
     private CategoryService categoryService;
 
     @GetMapping
-    public ResponseEntity<ArrayList<Category>> getCategories() {
+    public ResponseEntity<List<Category>> getCategories() {
         return ResponseEntity.ok(categoryService.getCategories());
     }
 
     @GetMapping("/{categoryId}")
-    public ResponseEntity<Category> getCategoryById(@PathVariable int categoryId) {
+    public ResponseEntity<Category> getCategoryById(@PathVariable UUID categoryId) {
         Optional<Category> result = categoryService.getCategoryById(categoryId);
         if (result.isPresent())
             return ResponseEntity.ok(result.get());
@@ -44,7 +47,19 @@ public class CategoriesController {
     @PostMapping
     public ResponseEntity<Object> createCategory(@RequestBody CategoryRequest categoryRequest)
             throws CategoryDuplicateException {
-        Category result = categoryService.createCategory(categoryRequest.getId(), categoryRequest.getDescription());
+        Category result = categoryService.createCategory(categoryRequest.getDescription());
         return ResponseEntity.created(URI.create("/categories/" + result.getId())).body(result);
+    }
+
+    @DeleteMapping("/{categoryId}")
+    public ResponseEntity<Category> deleteCategory(@PathVariable UUID categoryId) {
+        Category deletedCategory = categoryService.deleteCategory(categoryId);
+        return ResponseEntity.ok(deletedCategory);
+    }
+
+    @PutMapping("/{categoryId}")
+    public ResponseEntity<Category> updateCategory(@PathVariable UUID categoryId, @RequestBody CategoryRequest categoryRequest) {
+        Category updatedCategory = categoryService.updateCategory(categoryId, categoryRequest.getDescription());
+        return ResponseEntity.ok(updatedCategory);
     }
 }

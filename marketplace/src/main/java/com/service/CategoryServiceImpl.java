@@ -1,35 +1,51 @@
 package com.service;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import com.entity.Category;
 import com.exceptions.CategoryDuplicateException;
+import com.exceptions.CategoryNotFoundException;
 import com.repository.CategoryRepository;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
 @Service
 public class CategoryServiceImpl implements CategoryService {
+    @Autowired
     private CategoryRepository categoryRepository;
 
-    public CategoryServiceImpl() {
-        categoryRepository = new CategoryRepository();
+
+    public List<Category> getCategories() {
+        return categoryRepository.findAll();
     }
 
-    public ArrayList<Category> getCategories() {
-        return categoryRepository.getCategories();
+    public Optional<Category> getCategoryById(UUID categoryId) {
+        return categoryRepository.findById(categoryId);
     }
 
-    public Optional<Category> getCategoryById(int categoryId) {
-        return categoryRepository.getCategoryById(categoryId);
-    }
-
-    public Category createCategory(int newCategoryId, String description) throws CategoryDuplicateException {
-        ArrayList<Category> categories = categoryRepository.getCategories();
-        if (categories.stream().anyMatch(
-                category -> category.getId() == newCategoryId && category.getDescription().equals(description)))
+    public Category createCategory(String description) throws CategoryDuplicateException {
+        List<Category> categories = categoryRepository.findAll();
+        if (categories.stream().anyMatch(category -> category.getDescription().equals(description))) {
             throw new CategoryDuplicateException();
-        return categoryRepository.createCategory(newCategoryId, description);
+        }
+        return categoryRepository.save(new Category(description));
     }
+
+    public Category deleteCategory(UUID categoryId) {
+        Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new CategoryNotFoundException());
+        categoryRepository.deleteById(categoryId);
+        return category;
+    }
+
+    public Category updateCategory(UUID categoryId, String description) {
+        Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new CategoryNotFoundException());
+        category.setDescription(description);
+        return categoryRepository.save(category);
+    }
+        
 }
