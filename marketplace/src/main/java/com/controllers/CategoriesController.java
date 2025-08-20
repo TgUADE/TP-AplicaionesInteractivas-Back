@@ -4,12 +4,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.entity.Category;
+import com.entity.Product;
 import com.entity.dto.CategoryRequest;
 import com.exceptions.CategoryDuplicateException;
+import com.exceptions.CategoryNotFoundException;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import com.service.CategoryService;
+import com.service.ProductService;
 
 
 @RestController
@@ -29,6 +31,9 @@ public class CategoriesController {
 
     @Autowired
     private CategoryService categoryService;
+    
+    @Autowired
+    private ProductService productService;
 
     @GetMapping
     public ResponseEntity<List<Category>> getCategories() {
@@ -36,12 +41,15 @@ public class CategoriesController {
     }
 
     @GetMapping("/{categoryId}")
-    public ResponseEntity<Category> getCategoryById(@PathVariable UUID categoryId) {
-        Optional<Category> result = categoryService.getCategoryById(categoryId);
-        if (result.isPresent())
-            return ResponseEntity.ok(result.get());
+    public ResponseEntity<Category> getCategoryById(@PathVariable UUID categoryId) throws CategoryNotFoundException {
+        Category result = categoryService.getCategoryById(categoryId)
+            .orElseThrow(() -> new CategoryNotFoundException());
+        return ResponseEntity.ok(result);
+    }
 
-        return ResponseEntity.noContent().build();
+    @GetMapping("/{categoryId}/products")
+    public ResponseEntity<List<Product>> getProductsByCategory(@PathVariable UUID categoryId) throws CategoryNotFoundException {
+        return ResponseEntity.ok(productService.getProductsByCategory(categoryId));
     }
 
     @PostMapping
@@ -52,14 +60,15 @@ public class CategoriesController {
     }
 
     @DeleteMapping("/{categoryId}")
-    public ResponseEntity<Category> deleteCategory(@PathVariable UUID categoryId) {
-        Category deletedCategory = categoryService.deleteCategory(categoryId);
-        return ResponseEntity.ok(deletedCategory);
+    public ResponseEntity<Category> deleteCategory(@PathVariable UUID categoryId)
+            throws CategoryNotFoundException {
+        categoryService.deleteCategory(categoryId);
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{categoryId}")
-    public ResponseEntity<Category> updateCategory(@PathVariable UUID categoryId, @RequestBody CategoryRequest categoryRequest) {
-        Category updatedCategory = categoryService.updateCategory(categoryId, categoryRequest.getDescription());
-        return ResponseEntity.ok(updatedCategory);
+    public ResponseEntity<Category> updateCategory(@PathVariable UUID categoryId, @RequestBody CategoryRequest categoryRequest) throws CategoryNotFoundException {
+        Category result = categoryService.updateCategory(categoryId, categoryRequest.getDescription());
+        return ResponseEntity.ok(result);
     }
 }

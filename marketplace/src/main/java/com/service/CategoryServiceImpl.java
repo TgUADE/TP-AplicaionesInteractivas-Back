@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.entity.Category;
+import com.entity.Product;
 import com.exceptions.CategoryDuplicateException;
 import com.exceptions.CategoryNotFoundException;
 import com.repository.CategoryRepository;
@@ -36,6 +37,11 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryRepository.save(new Category(description));
     }
 
+    public List<Product> getProductsByCategory(UUID categoryId) throws CategoryNotFoundException {
+        Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new CategoryNotFoundException());
+        return category.getProducts();
+    }
+
     public Category deleteCategory(UUID categoryId) {
         Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new CategoryNotFoundException());
         categoryRepository.deleteById(categoryId);
@@ -47,5 +53,7 @@ public class CategoryServiceImpl implements CategoryService {
         category.setDescription(description);
         return categoryRepository.save(category);
     }
+
+    
         
 }

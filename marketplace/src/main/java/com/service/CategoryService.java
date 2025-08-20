@@ -14,4 +14,5 @@ public interface CategoryService {
     Category createCategory(String description) throws CategoryDuplicateException;
     Category deleteCategory(UUID categoryId);
     Category updateCategory(UUID categoryId, String description);
+    Object getProductsByCategory(UUID categoryId);
 }

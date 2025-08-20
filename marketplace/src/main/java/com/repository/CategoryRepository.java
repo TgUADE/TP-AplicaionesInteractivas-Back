@@ -1,6 +1,7 @@
 package com.repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,4 +14,8 @@ import com.entity.Category;
 public interface CategoryRepository extends JpaRepository<Category, UUID> {
     @Query("SELECT c FROM Category c WHERE c.description = ?1")
     List<Category> findByDescription(String description);
+
+    @Query("SELECT c FROM Category c WHERE c.id = ?1")
+    Optional<Category> findById(UUID id);
+    
 }
