@@ -20,15 +20,15 @@ import lombok.Data;
 @Table(name = "orders")
 public class Order {
 
+    public Order() {
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false, updatable = false)
     private java.time.LocalDateTime createdAt = java.time.LocalDateTime.now();
-
-    @Column(name="count")
-    private long count;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
