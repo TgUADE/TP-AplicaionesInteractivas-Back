@@ -40,6 +40,20 @@ public class OrderController {
         return ResponseEntity.ok(result);
     }
 
+    // Obtener todas las órdenes de un usuario
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<Order>> getOrdersByUserId(@PathVariable Long userId) {
+        List<Order> orders = orderService.findByUserId(userId);
+        return ResponseEntity.ok(orders);
+    }
+
+    // Obtener todas las órdenes que contienen un producto
+    @GetMapping("/product/{productId}")
+    public ResponseEntity<List<Order>> getOrdersByProductId(@PathVariable Long productId) {
+        List<Order> orders = orderService.findByProductId(productId);
+        return ResponseEntity.ok(orders);
+    }
+
     @PostMapping
     public ResponseEntity<Object> createOrder(@RequestBody OrderRequest orderRequest) {
         Order result = orderService.createOrder(orderRequest);

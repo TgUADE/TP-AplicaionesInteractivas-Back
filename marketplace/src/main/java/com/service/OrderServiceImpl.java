@@ -47,6 +47,14 @@ public class OrderServiceImpl implements OrderService{
 
     }
 
+    public List<Order> findByUserId(Long userId) {
+        return orderRepository.findByUserId(userId);
+    }
+
+    public List<Order> findByProductId(Long productId) {
+        return orderRepository.findByProductsId(productId);
+    }
+
 
 }
 
