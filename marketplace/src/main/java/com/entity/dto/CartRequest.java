@@ -8,6 +8,7 @@ import java.util.UUID;
 @Data
 public class CartRequest {
     private UUID id;
-    private UUID userId;
+    // No enviar userId en el body al crear carrito, se toma de la URL
+    private UUID userId; // Solo necesario para update
     private List<UUID> productIds;
 }
