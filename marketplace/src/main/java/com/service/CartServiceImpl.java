@@ -22,6 +22,7 @@ public class CartServiceImpl implements CartService {
 
     private final CartRepository cartRepository;
     private final UserService userService;
+    private final com.repository.ProductRepository productRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -77,5 +78,29 @@ public class CartServiceImpl implements CartService {
     @Transactional(readOnly = true)
     public List<Cart> findByProductId(Long productId) {
         return cartRepository.findByProductsId(UUID.fromString(productId.toString()));
+    }
+
+    @Override
+    @Transactional
+    public Cart addProductToCart(UUID cartId, UUID productId) {
+        Cart cart = cartRepository.findById(cartId)
+                .orElseThrow(com.exceptions.CartNotFoundException::new);
+        com.entity.Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new com.exceptions.ProductNotFoundException("Product not found"));
+        if (!cart.getProducts().contains(product)) {
+            cart.getProducts().add(product);
+        }
+        return cartRepository.save(cart);
+    }
+
+    @Override
+    @Transactional
+    public Cart removeProductFromCart(UUID cartId, UUID productId) {
+        Cart cart = cartRepository.findById(cartId)
+                .orElseThrow(com.exceptions.CartNotFoundException::new);
+        com.entity.Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new com.exceptions.ProductNotFoundException("Product not found"));
+        cart.getProducts().remove(product);
+        return cartRepository.save(cart);
     }
 }

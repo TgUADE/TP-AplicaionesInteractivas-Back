@@ -28,11 +28,9 @@ public class CartController {
     @Autowired
     private CartService cartService;
 
-    @GetMapping
-    public ResponseEntity<List<Cart>> getCarts() {
-        return ResponseEntity.ok(cartService.getCarts());
-    }
-
+    /**
+     * Obtener un carrito por su ID
+     */
     @GetMapping("/{cartId}")
     public ResponseEntity<Cart> getCartById(@PathVariable UUID cartId) throws CartNotFoundException {
         Cart result = cartService.getCartById(cartId)
@@ -40,26 +38,27 @@ public class CartController {
         return ResponseEntity.ok(result);
     }
 
-    // Obtener todos los carritos de un usuario
+    /**
+     * Obtener todos los carritos de un usuario
+     */
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Cart>> getCartsByUserId(@PathVariable Long userId) {
         List<Cart> carts = cartService.findByUserId(userId);
         return ResponseEntity.ok(carts);
     }
 
-    // Obtener todos los carritos que contienen un producto
-    @GetMapping("/product/{productId}")
-    public ResponseEntity<List<Cart>> getCartsByProductId(@PathVariable Long productId) {
-        List<Cart> carts = cartService.findByProductId(productId);
-        return ResponseEntity.ok(carts);
-    }
-
+    /**
+     * Crear un nuevo carrito
+     */
     @PostMapping
     public ResponseEntity<Object> createCart(@RequestBody CartRequest cartRequest) {
         Cart result = cartService.createCart(cartRequest);
         return ResponseEntity.created(URI.create("/carts/" + result.getId())).body(result);
     }
 
+    /**
+     * Actualizar un carrito existente
+     */
     @PutMapping("/{cartId}")
     public ResponseEntity<Cart> updateCart(@PathVariable UUID cartId, @RequestBody CartRequest cartRequest)
             throws CartNotFoundException {
@@ -67,10 +66,31 @@ public class CartController {
         return ResponseEntity.ok(result);
     }
 
+    /**
+     * Eliminar un carrito por su ID
+     */
     @DeleteMapping("/{cartId}")
     public ResponseEntity<Cart> deleteCart(@PathVariable UUID cartId)
             throws CartNotFoundException {
         cartService.deleteCart(cartId);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Agregar un producto al carrito
+     */
+    @PostMapping("/{cartId}/product/{productId}")
+    public ResponseEntity<Cart> addProductToCart(@PathVariable UUID cartId, @PathVariable UUID productId) {
+        Cart updatedCart = cartService.addProductToCart(cartId, productId);
+        return ResponseEntity.ok(updatedCart);
+    }
+
+    /**
+     * Quitar un producto del carrito
+     */
+    @DeleteMapping("/{cartId}/product/{productId}")
+    public ResponseEntity<Cart> removeProductFromCart(@PathVariable UUID cartId, @PathVariable UUID productId) {
+        Cart updatedCart = cartService.removeProductFromCart(cartId, productId);
+        return ResponseEntity.ok(updatedCart);
     }
 }

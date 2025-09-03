@@ -22,4 +22,8 @@ public interface CartService {
     List<Cart> findByUserId(Long userId);
 
     List<Cart> findByProductId(Long productId);
+
+    Cart addProductToCart(UUID cartId, UUID productId);
+
+    Cart removeProductFromCart(UUID cartId, UUID productId);
 }
