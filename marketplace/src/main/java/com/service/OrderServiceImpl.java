@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.entity.User;
+import com.exceptions.OrderNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +23,8 @@ import lombok.RequiredArgsConstructor;
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
-    private final ProductService productService;
+    private final UserService userService;
+    // private final CarritoService carritoService;
 
     @Override
     @Transactional(readOnly = true)
@@ -38,46 +41,60 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public Order createOrder(OrderRequest request) throws OrderDuplicateException {
-        // TODO: Implement order creation logic
+        User user = userService.getById(request.getUserId());
+
+//        Carrito carrito = carritoService.getById(request.getId())
+//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cart not found"));
+
         Order order = new Order();
-        // Set order properties from request
+        order.setUser(user);
+//        order.setCarrito(carrito);
+//        order.setStatus("CREATED");
+        order.setCreatedAt(java.time.LocalDateTime.now());
+
         return orderRepository.save(order);
     }
+
 
     @Override
     @Transactional
     public Order updateOrder(UUID orderId, OrderRequest request) {
-        Order order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Orden no encontrada"));
-        
-        // TODO: Update order properties from request
-        return orderRepository.save(order);
+        Order existingOrder = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException());
+
+//        if (request.getCartId() != null) {
+//            Cart cart = cartService.getCartById(request.getCartId())
+//                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cart not found"));
+//            existingOrder.setCart(cart);
+//        }
+//
+//        if (request.getStatus() != null) {
+//            existingOrder.setStatus(request.getStatus());
+//        }
+
+        return orderRepository.save(existingOrder);
     }
+
 
     @Override
     @Transactional
     public Order deleteOrder(UUID orderId) {
-        Order order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Orden no encontrada"));
-        
-        orderRepository.delete(order);
-        return order;
+        Order existingOrder = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException());
+
+        orderRepository.delete(existingOrder);
+        return existingOrder;
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<Order> findByUserId(Long userId) {
-        // TODO: Convert Long to UUID if needed, or change interface to use UUID
         return orderRepository.findByUserId(UUID.fromString(userId.toString()));
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<Order> findByProductId(Long productId) {
-        // TODO: Convert Long to UUID if needed, or change interface to use UUID
         return orderRepository.findByProductsId(UUID.fromString(productId.toString()));
     }
 }
-
-
-
