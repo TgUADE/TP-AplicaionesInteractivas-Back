@@ -1,7 +1,6 @@
 package com.entity.dto;
 
-import java.util.UUID;
-
+import com.entity.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -18,7 +17,7 @@ public class UserRequest {
     @NotBlank(message = "La contraseña es requerida")
     @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres")
     private String password;
-    private UUID roleId;
+    private Role role;
     private String phone;
     private String address;
     private String city;
