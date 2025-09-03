@@ -13,13 +13,13 @@ public interface CartService {
 
     Optional<Cart> getCartById(UUID cartId);
 
-    Cart createCart(CartRequest request) throws CartDuplicateException;
+    Cart createCart(UUID userId, CartRequest request) throws CartDuplicateException;
 
     Cart updateCart(UUID cartId, CartRequest request);
 
     Cart deleteCart(UUID cartId);
 
-    List<Cart> findByUserId(Long userId);
+    List<Cart> findByUserId(UUID userId);
 
     List<Cart> findByProductId(Long productId);
 

@@ -38,8 +38,8 @@ public class CartServiceImpl implements CartService {
 
     @Override
     @Transactional
-    public Cart createCart(CartRequest request) throws CartDuplicateException {
-        User user = userService.getById(request.getUserId());
+    public Cart createCart(UUID userId, CartRequest request) throws CartDuplicateException {
+        User user = userService.getById(userId);
         Cart cart = new Cart();
         cart.setUser(user);
         cart.setCreatedAt(java.time.LocalDateTime.now());
@@ -70,8 +70,8 @@ public class CartServiceImpl implements CartService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Cart> findByUserId(Long userId) {
-        return cartRepository.findByUserId(UUID.fromString(userId.toString()));
+    public List<Cart> findByUserId(UUID userId) {
+        return cartRepository.findByUserId(userId);
     }
 
     @Override

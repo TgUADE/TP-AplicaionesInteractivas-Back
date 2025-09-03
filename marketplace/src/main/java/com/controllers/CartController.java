@@ -42,17 +42,17 @@ public class CartController {
      * Obtener todos los carritos de un usuario
      */
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Cart>> getCartsByUserId(@PathVariable Long userId) {
+    public ResponseEntity<List<Cart>> getCartsByUserId(@PathVariable UUID userId) {
         List<Cart> carts = cartService.findByUserId(userId);
         return ResponseEntity.ok(carts);
     }
 
     /**
-     * Crear un nuevo carrito
+     * Crear un nuevo carrito para un usuario
      */
-    @PostMapping
-    public ResponseEntity<Object> createCart(@RequestBody CartRequest cartRequest) {
-        Cart result = cartService.createCart(cartRequest);
+    @PostMapping("/user/{userId}")
+    public ResponseEntity<Object> createCart(@PathVariable UUID userId, @RequestBody CartRequest cartRequest) {
+        Cart result = cartService.createCart(userId, cartRequest);
         return ResponseEntity.created(URI.create("/carts/" + result.getId())).body(result);
     }
 
