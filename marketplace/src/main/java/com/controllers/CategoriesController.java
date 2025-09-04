@@ -7,6 +7,7 @@ import com.entity.Category;
 import com.entity.Product;
 import com.entity.dto.CategoryRequest;
 import com.exceptions.CategoryDuplicateException;
+import com.exceptions.CategoryInUseException;
 import com.exceptions.CategoryNotFoundException;
 
 import java.net.URI;
@@ -61,7 +62,7 @@ public class CategoriesController {
 
     @DeleteMapping("/{categoryId}")
     public ResponseEntity<Category> deleteCategory(@PathVariable UUID categoryId)
-            throws CategoryNotFoundException {
+            throws CategoryNotFoundException, CategoryInUseException {
         categoryService.deleteCategory(categoryId);
         return ResponseEntity.noContent().build();
     }

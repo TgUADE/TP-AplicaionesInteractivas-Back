@@ -1,6 +1,8 @@
 package com.service;
 
 import com.entity.Cart;
+import com.entity.CartProduct;
+import com.entity.dto.AddProductToCartRequest;
 import com.entity.dto.CartRequest;
 import com.exceptions.CartDuplicateException;
 
@@ -26,4 +28,11 @@ public interface CartService {
     Cart addProductToCart(UUID cartId, UUID productId);
 
     Cart removeProductFromCart(UUID cartId, UUID productId);
+    
+    // Nuevos métodos con cantidades
+    CartProduct addProductToCartWithQuantity(UUID cartId, UUID productId, Integer quantity);
+    
+    CartProduct updateProductQuantityInCart(UUID cartId, UUID productId, Integer quantity);
+    
+    List<CartProduct> getCartProducts(UUID cartId);
 }

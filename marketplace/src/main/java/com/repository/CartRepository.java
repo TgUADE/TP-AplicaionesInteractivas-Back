@@ -15,6 +15,6 @@ public interface CartRepository extends JpaRepository<Cart, UUID> {
     List<Cart> findByUserId(UUID userId);
 
     // Buscar carritos que contengan cierto producto
-    @Query("SELECT c FROM Cart c JOIN c.products p WHERE p.id = ?1")
+    @Query("SELECT c FROM Cart c JOIN c.cartProducts cp WHERE cp.product.id = ?1")
     List<Cart> findByProductsId(UUID productId);
 }

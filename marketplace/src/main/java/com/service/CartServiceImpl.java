@@ -6,15 +6,15 @@ import java.util.UUID;
 
 import com.entity.User;
 import com.entity.Cart;
+import com.entity.CartProduct;
 import com.entity.dto.CartRequest;
 import com.exceptions.CartDuplicateException;
 import com.exceptions.CartNotFoundException;
 import com.repository.CartRepository;
+import com.repository.CartProductRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +23,7 @@ public class CartServiceImpl implements CartService {
     private final CartRepository cartRepository;
     private final UserService userService;
     private final com.repository.ProductRepository productRepository;
+    private final CartProductRepository cartProductRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -83,24 +84,61 @@ public class CartServiceImpl implements CartService {
     @Override
     @Transactional
     public Cart addProductToCart(UUID cartId, UUID productId) {
-        Cart cart = cartRepository.findById(cartId)
+        // Método legacy - agregar con cantidad 1
+        addProductToCartWithQuantity(cartId, productId, 1);
+        return cartRepository.findById(cartId)
                 .orElseThrow(com.exceptions.CartNotFoundException::new);
-        com.entity.Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new com.exceptions.ProductNotFoundException("Product not found"));
-        if (!cart.getProducts().contains(product)) {
-            cart.getProducts().add(product);
-        }
-        return cartRepository.save(cart);
     }
 
     @Override
     @Transactional
     public Cart removeProductFromCart(UUID cartId, UUID productId) {
+        cartProductRepository.deleteByCartIdAndProductId(cartId, productId);
+        return cartRepository.findById(cartId)
+                .orElseThrow(com.exceptions.CartNotFoundException::new);
+    }
+
+    @Override
+    @Transactional
+    public CartProduct addProductToCartWithQuantity(UUID cartId, UUID productId, Integer quantity) {
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(com.exceptions.CartNotFoundException::new);
         com.entity.Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new com.exceptions.ProductNotFoundException("Product not found"));
-        cart.getProducts().remove(product);
-        return cartRepository.save(cart);
+        
+        // Verificar si el producto ya existe en el carrito
+        Optional<CartProduct> existingCartProduct = cartProductRepository.findByCartIdAndProductId(cartId, productId);
+        
+        if (existingCartProduct.isPresent()) {
+            // Si existe, sumar la cantidad
+            CartProduct cartProduct = existingCartProduct.get();
+            cartProduct.setQuantity(cartProduct.getQuantity() + quantity);
+            return cartProductRepository.save(cartProduct);
+        } else {
+            // Si no existe, crear nuevo
+            CartProduct cartProduct = new CartProduct(cart, product, quantity);
+            return cartProductRepository.save(cartProduct);
+        }
+    }
+
+    @Override
+    @Transactional
+    public CartProduct updateProductQuantityInCart(UUID cartId, UUID productId, Integer quantity) {
+        CartProduct cartProduct = cartProductRepository.findByCartIdAndProductId(cartId, productId)
+                .orElseThrow(() -> new com.exceptions.ProductNotFoundException("Product not found in cart"));
+        
+        if (quantity <= 0) {
+            cartProductRepository.delete(cartProduct);
+            return null;
+        }
+        
+        cartProduct.setQuantity(quantity);
+        return cartProductRepository.save(cartProduct);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CartProduct> getCartProducts(UUID cartId) {
+        return cartProductRepository.findByCartId(cartId);
     }
 }

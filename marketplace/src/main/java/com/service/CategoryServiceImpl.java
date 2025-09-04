@@ -1,6 +1,5 @@
 package com.service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -8,6 +7,7 @@ import java.util.UUID;
 import com.entity.Category;
 import com.entity.Product;
 import com.exceptions.CategoryDuplicateException;
+import com.exceptions.CategoryInUseException;
 import com.exceptions.CategoryNotFoundException;
 import com.repository.CategoryRepository;
 
@@ -42,8 +42,14 @@ public class CategoryServiceImpl implements CategoryService {
         return category.getProducts();
     }
 
-    public Category deleteCategory(UUID categoryId) {
+    public Category deleteCategory(UUID categoryId) throws CategoryInUseException {
         Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new CategoryNotFoundException());
+        
+        // Verificar si la categoría tiene productos asociados
+        if (category.getProducts() != null && !category.getProducts().isEmpty()) {
+            throw new CategoryInUseException();
+        }
+        
         categoryRepository.deleteById(categoryId);
         return category;
     }

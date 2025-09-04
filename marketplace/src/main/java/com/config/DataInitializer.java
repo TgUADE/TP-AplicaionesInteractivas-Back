@@ -1,6 +1,7 @@
 package com.config;
 
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 public class DataInitializer implements CommandLineRunner {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
@@ -34,9 +36,10 @@ public class DataInitializer implements CommandLineRunner {
         
         if (!userRepository.existsByEmail(adminEmail)) {
             User admin = new User();
-            admin.setName("Administrador");
+            admin.setName("Admin");
+            admin.setSurname("Sistema");
             admin.setEmail(adminEmail);
-            admin.setPassword("admin123");
+            admin.setPassword(passwordEncoder.encode("admin123"));
             admin.setRole(Role.ADMIN);
     
             userRepository.save(admin);

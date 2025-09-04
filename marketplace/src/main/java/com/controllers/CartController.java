@@ -4,6 +4,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.entity.Cart;
+import com.entity.CartProduct;
+import com.entity.dto.AddProductToCartRequest;
 import com.entity.dto.CartRequest;
 import com.exceptions.CartNotFoundException;
 import com.service.CartService;
@@ -92,5 +94,44 @@ public class CartController {
     public ResponseEntity<Cart> removeProductFromCart(@PathVariable UUID cartId, @PathVariable UUID productId) {
         Cart updatedCart = cartService.removeProductFromCart(cartId, productId);
         return ResponseEntity.ok(updatedCart);
+    }
+
+    // ========== NUEVOS ENDPOINTS CON CANTIDADES ==========
+
+    /**
+     * Obtener todos los productos de un carrito con sus cantidades
+     */
+    @GetMapping("/{cartId}/products")
+    public ResponseEntity<List<CartProduct>> getCartProducts(@PathVariable UUID cartId) {
+        List<CartProduct> cartProducts = cartService.getCartProducts(cartId);
+        return ResponseEntity.ok(cartProducts);
+    }
+
+    /**
+     * Agregar un producto al carrito con cantidad específica
+     */
+    @PostMapping("/{cartId}/products")
+    public ResponseEntity<CartProduct> addProductToCartWithQuantity(
+            @PathVariable UUID cartId, 
+            @RequestBody AddProductToCartRequest request) {
+        CartProduct cartProduct = cartService.addProductToCartWithQuantity(
+                cartId, request.getProductId(), request.getQuantity());
+        return ResponseEntity.ok(cartProduct);
+    }
+
+    /**
+     * Actualizar la cantidad de un producto en el carrito
+     */
+    @PutMapping("/{cartId}/products/{productId}")
+    public ResponseEntity<CartProduct> updateProductQuantity(
+            @PathVariable UUID cartId, 
+            @PathVariable UUID productId, 
+            @RequestBody AddProductToCartRequest request) {
+        CartProduct cartProduct = cartService.updateProductQuantityInCart(
+                cartId, productId, request.getQuantity());
+        if (cartProduct == null) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(cartProduct);
     }
 }
