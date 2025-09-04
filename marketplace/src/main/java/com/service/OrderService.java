@@ -15,6 +15,6 @@ public interface OrderService {
     Order createOrder(OrderRequest request) throws OrderDuplicateException;
     Order updateOrder(UUID orderId, OrderRequest request);
     Order deleteOrder(UUID orderId);
-    List<Order> findByUserId(Long userId);
-    List<Order> findByProductId(Long productId);
+    List<Order> findByUserId(UUID userId);
+    List<Order> findByProductId(UUID productId);
 }

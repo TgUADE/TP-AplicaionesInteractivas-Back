@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.entity.Cart;
 import com.entity.User;
 import com.exceptions.OrderNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -24,7 +25,7 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final UserService userService;
-    // private final CarritoService carritoService;
+    private final CartService cartService;
 
     @Override
     @Transactional(readOnly = true)
@@ -43,13 +44,13 @@ public class OrderServiceImpl implements OrderService {
     public Order createOrder(OrderRequest request) throws OrderDuplicateException {
         User user = userService.getById(request.getUserId());
 
-//        Carrito carrito = carritoService.getById(request.getId())
-//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cart not found"));
+        Cart carrito = cartService.getCartById(request.getCartId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cart not found"));
 
         Order order = new Order();
         order.setUser(user);
-//        order.setCarrito(carrito);
-//        order.setStatus("CREATED");
+        order.setCarrito(carrito);
+        order.setStatus("CREATED");
         order.setCreatedAt(java.time.LocalDateTime.now());
 
         return orderRepository.save(order);
@@ -62,15 +63,16 @@ public class OrderServiceImpl implements OrderService {
         Order existingOrder = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderNotFoundException());
 
-//        if (request.getCartId() != null) {
-//            Cart cart = cartService.getCartById(request.getCartId())
-//                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cart not found"));
-//            existingOrder.setCart(cart);
-//        }
-//
-//        if (request.getStatus() != null) {
-//            existingOrder.setStatus(request.getStatus());
-//        }
+        if (request.getCartId() != null) {
+            Cart cart = cartService.getCartById(request.getCartId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cart not found"));
+            existingOrder.setCarrito(cart);
+
+        }
+
+        if (request.getStatus() != null) {
+            existingOrder.setStatus(request.getStatus());
+        }
 
         return orderRepository.save(existingOrder);
     }
@@ -88,13 +90,14 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Order> findByUserId(Long userId) {
+    public List<Order> findByUserId(UUID userId) {
         return orderRepository.findByUserId(UUID.fromString(userId.toString()));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<Order> findByProductId(Long productId) {
+    public List<Order> findByProductId(UUID productId) {
         return orderRepository.findByProductsId(UUID.fromString(productId.toString()));
     }
+
 }

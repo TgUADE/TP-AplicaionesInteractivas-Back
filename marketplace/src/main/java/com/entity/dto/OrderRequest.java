@@ -7,7 +7,7 @@ import java.util.UUID;
 
 @Data
 public class OrderRequest {
-    private UUID id;
     private UUID userId;
-    private List<UUID> productIds;
+    private UUID cartId;
+    private String status;
 }
