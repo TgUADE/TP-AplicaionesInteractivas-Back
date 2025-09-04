@@ -15,7 +15,7 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     List<Order> findByUserId(UUID userId);
 
     // Buscar órdenes que contengan cierto producto
-    @Query("SELECT o FROM Order o JOIN o.products p WHERE p.id = ?1")
+    @Query("SELECT o FROM Order o JOIN o.carrito c JOIN c.products p WHERE p.id = ?1")
     List<Order> findByProductsId(UUID productId);
 
 }
