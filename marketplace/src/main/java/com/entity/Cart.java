@@ -14,6 +14,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Data
 @Entity
@@ -35,6 +36,7 @@ public class Cart {
     private User user;
 
     @OneToMany(mappedBy = "cart")
+    @JsonManagedReference
     private List<CartProduct> cartProducts;
 
     @PrePersist

@@ -2,8 +2,10 @@ package com.service;
 
 import com.entity.Cart;
 import com.entity.CartProduct;
+import com.entity.Order;
 import com.entity.dto.AddProductToCartRequest;
 import com.entity.dto.CartRequest;
+import com.entity.dto.CreateOrderFromCartRequest;
 import com.exceptions.CartDuplicateException;
 
 import java.util.List;
@@ -35,4 +37,7 @@ public interface CartService {
     CartProduct updateProductQuantityInCart(UUID cartId, UUID productId, Integer quantity);
     
     List<CartProduct> getCartProducts(UUID cartId);
+    
+    // Método para crear orden desde carrito
+    Order createOrderFromCart(UUID cartId, CreateOrderFromCartRequest request);
 }

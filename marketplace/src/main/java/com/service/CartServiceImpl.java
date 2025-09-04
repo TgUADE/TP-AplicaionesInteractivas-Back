@@ -1,20 +1,28 @@
 package com.service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import com.entity.User;
 import com.entity.Cart;
 import com.entity.CartProduct;
+import com.entity.Order;
+import com.entity.Product;
 import com.entity.dto.CartRequest;
+import com.entity.dto.CreateOrderFromCartRequest;
+import com.entity.dto.OrderProductItem;
 import com.exceptions.CartDuplicateException;
 import com.exceptions.CartNotFoundException;
 import com.repository.CartRepository;
 import com.repository.CartProductRepository;
+import com.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +32,8 @@ public class CartServiceImpl implements CartService {
     private final UserService userService;
     private final com.repository.ProductRepository productRepository;
     private final CartProductRepository cartProductRepository;
+    private final OrderRepository orderRepository;
+    private final ObjectMapper objectMapper;
 
     @Override
     @Transactional(readOnly = true)
@@ -140,5 +150,65 @@ public class CartServiceImpl implements CartService {
     @Transactional(readOnly = true)
     public List<CartProduct> getCartProducts(UUID cartId) {
         return cartProductRepository.findByCartId(cartId);
+    }
+
+    @Override
+    @Transactional
+    public Order createOrderFromCart(UUID cartId, CreateOrderFromCartRequest request) {
+        // Obtener el carrito con sus productos
+        Cart cart = cartRepository.findById(cartId)
+                .orElseThrow(() -> new CartNotFoundException("Carrito no encontrado"));
+        
+        List<CartProduct> cartProducts = cartProductRepository.findByCartId(cartId);
+        
+        if (cartProducts.isEmpty()) {
+            throw new RuntimeException("No se puede crear una orden con un carrito vacío");
+        }
+        
+        // Crear la lista de productos para el JSON
+        List<OrderProductItem> orderItems = cartProducts.stream()
+                .map(cartProduct -> {
+                    Product product = cartProduct.getProduct();
+                    BigDecimal price = BigDecimal.valueOf(product.getPrice());
+                    BigDecimal quantity = BigDecimal.valueOf(cartProduct.getQuantity());
+                    BigDecimal subtotal = price.multiply(quantity);
+                    
+                    return new OrderProductItem(
+                            product.getId(),
+                            product.getName(),
+                            price,
+                            cartProduct.getQuantity(),
+                            subtotal
+                    );
+                })
+                .collect(Collectors.toList());
+        
+        // Calcular el total
+        BigDecimal total = orderItems.stream()
+                .map(OrderProductItem::getSubtotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        // Convertir la lista de productos a JSON
+        String productsJson;
+        try {
+            productsJson = objectMapper.writeValueAsString(orderItems);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al convertir productos a JSON", e);
+        }
+        
+        // Crear la orden
+        Order order = new Order();
+        order.setUser(cart.getUser());
+        order.setCarrito(cart);
+        order.setStatus("PENDING");
+        order.setProductsJson(productsJson);
+        order.setShippingAddress(request.getShippingAddress());
+        order.setBillingAddress(request.getBillingAddress());
+        order.setPaymentMethod(request.getPaymentMethod());
+        order.setIsPaid(request.getIsPaid());
+        order.setTotal(total);
+        order.setCreatedAt(java.time.LocalDateTime.now());
+        
+        return orderRepository.save(order);
     }
 }

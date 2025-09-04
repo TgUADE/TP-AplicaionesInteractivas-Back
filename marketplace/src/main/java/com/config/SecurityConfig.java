@@ -2,6 +2,7 @@ package com.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -34,8 +35,12 @@ public class SecurityConfig {
                                                 .requestMatchers("/products/**").hasAuthority(Role.ADMIN.name())
                                                 .requestMatchers("/categories/**").hasAuthority(Role.ADMIN.name())
                                                 .requestMatchers("/carts/**").authenticated() // Todos los endpoints de carrito requieren autenticación
-                                                .requestMatchers("/orders/**").authenticated()
-                                                .anyRequest()
+                                .requestMatchers("/orders/user/**").hasAuthority(Role.ADMIN.name())
+                                .requestMatchers(HttpMethod.PUT, "/orders/**").hasAuthority(Role.ADMIN.name())
+                                .requestMatchers(HttpMethod.DELETE, "/orders/**").hasAuthority(Role.ADMIN.name())
+                                .requestMatchers("/orders").hasAuthority(Role.ADMIN.name())
+                                .requestMatchers("/orders/**").authenticated()
+                                .anyRequest()
                                                 .authenticated())
                                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
                                 .authenticationProvider(authenticationProvider)

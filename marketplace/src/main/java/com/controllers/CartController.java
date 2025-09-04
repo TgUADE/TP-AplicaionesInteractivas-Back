@@ -5,9 +5,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.entity.Cart;
 import com.entity.CartProduct;
+import com.entity.Order;
 import com.entity.User;
 import com.entity.dto.AddProductToCartRequest;
 import com.entity.dto.CartRequest;
+import com.entity.dto.CreateOrderFromCartRequest;
 import com.exceptions.CartNotFoundException;
 import com.service.CartService;
 
@@ -47,7 +49,7 @@ public class CartController {
     /**
      * Método utilitario para validar que el carrito pertenece al usuario autenticado
      */
-    private void validateCartOwnership(UUID cartId) {
+    public void validateCartOwnership(UUID cartId) {
         User authenticatedUser = getAuthenticatedUser();
         Cart cart = cartService.getCartById(cartId)
                 .orElseThrow(CartNotFoundException::new);
@@ -171,4 +173,6 @@ public class CartController {
         }
         return ResponseEntity.ok(cartProduct);
     }
+
+    
 }
