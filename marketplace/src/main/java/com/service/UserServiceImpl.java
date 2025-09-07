@@ -123,7 +123,7 @@ public class UserServiceImpl implements UserService {
             throw new UserDuplicateException();
         }
         
-        // Verificar si el teléfono ya existe (si se proporciona)
+        // Verificar si el teléfono ya existe
         if (request.getPhone() != null && userRepository.existsByPhone(request.getPhone())) {
             throw new UserDuplicateException();
         }
@@ -132,14 +132,14 @@ public class UserServiceImpl implements UserService {
         User user = new User();
         user.setName(request.getName());
         user.setEmail(email);
-        user.setPassword(request.getPassword()); // TODO: Hash password when security is configured
+        user.setPassword(request.getPassword());
         user.setPhone(request.getPhone());
         user.setAddress(request.getAddress());
         user.setCity(request.getCity());
         user.setState(request.getState());
         user.setZip(request.getZip());
         user.setCountry(request.getCountry());
-        user.setRole(Role.USER); // Por defecto, los usuarios registrados son USER
+        user.setRole(Role.USER); 
 
         return userRepository.save(user);
     }
@@ -153,7 +153,6 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new UserInvalidCredentialsException());
         
-        // Verificar contraseña (sin hash por ahora)
         if (!request.getPassword().equals(user.getPassword())) {
             throw new UserInvalidCredentialsException();
         }
