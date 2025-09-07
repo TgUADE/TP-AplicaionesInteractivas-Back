@@ -10,8 +10,12 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.entity.Role;
 import com.entity.User;
+import com.entity.dto.LoginRequest;
+import com.entity.dto.RegisterRequest;
 import com.entity.dto.UserRequest;
-import com.repository.RoleRepository;
+import com.exceptions.UserDuplicateException;
+import com.exceptions.UserInvalidCredentialsException;
+import com.exceptions.UserNotFoundException;
 import com.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -20,38 +24,35 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-    
+
     @Override
     @Transactional
-    public User create(UserRequest request) {
+    public User create(UserRequest request) throws UserDuplicateException {
         final String email = normalizeEmail(request.getEmail());
         if (userRepository.existsByEmail(email)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "El email ya está registrado");
+            throw new UserDuplicateException();
         }
         if (request.getPhone() != null && userRepository.existsByPhone(request.getPhone())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "El teléfono ya está registrado");
+            throw new UserDuplicateException();
         }
 
         User u = new User();
         applyRequest(u, request, true);
         u.setEmail(email);
-        u.setPassword(request.getPassword()); 
-
-        // Aca asignamos el rol por defecto si no se especifica
+        u.setPassword(request.getPassword());
+        
+        // Aca asignamos el rol de USER por defecto si no se especifica
         if (u.getRole() == null) {
-            Role defaultRole = roleRepository.findByName("USER")
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Rol USER no encontrado"));
-            u.setRole(defaultRole);
+            u.setRole(Role.USER);
         }
 
         return userRepository.save(u);
     }
     @Override
     @Transactional(readOnly = true)
-    public User getById(UUID id) {
+    public User getById(UUID id) throws UserNotFoundException {
         return userRepository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+            .orElseThrow(() -> new UserNotFoundException());
     }
 
     @Override
@@ -62,21 +63,21 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public User update(UUID id, UserRequest request) {
+    public User update(UUID id, UserRequest request) throws UserNotFoundException, UserDuplicateException {
         User u = userRepository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+            .orElseThrow(() -> new UserNotFoundException());
 
         // Si el email cambia hay que validarlo de nuevo
         if (request.getEmail() != null) {
             String newEmail = normalizeEmail(request.getEmail());
             if (!newEmail.equalsIgnoreCase(u.getEmail()) && userRepository.existsByEmail(newEmail)) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "El email ya está registrado");
+                throw new UserDuplicateException();
             }
             u.setEmail(newEmail);
         }
 
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
-            u.setPassword(request.getPassword()); 
+            u.setPassword(request.getPassword());
         }
 
         applyRequest(u, request, false);
@@ -86,14 +87,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void delete(UUID id) {
+    public void delete(UUID id) throws UserNotFoundException {
         if (!userRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado");
+            throw new UserNotFoundException();
         }
         userRepository.deleteById(id);
     }
 
-  
     private void applyRequest(User u, UserRequest r, boolean isCreate) {
         if (r.getName() != null)            u.setName(r.getName());
         if (r.getPhone() != null)           u.setPhone(r.getPhone());
@@ -102,16 +102,62 @@ public class UserServiceImpl implements UserService {
         if (r.getState() != null)           u.setState(r.getState());
         if (r.getZip() != null)             u.setZip(r.getZip());
         if (r.getCountry() != null)         u.setCountry(r.getCountry());
-        
-        // Si especifica roleId, le asignamos el rol
-        if (r.getRoleId() != null) {
-            Role role = roleRepository.findById(r.getRoleId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Rol no válido"));
-            u.setRole(role);
+
+        // Asignar rol si se especifica
+        if (r.getRole() != null) {
+            u.setRole(r.getRole());
         }
     }
 
     private String normalizeEmail(String email) {
         return email == null ? null : email.trim().toLowerCase();
+    }
+
+    @Override
+    @Transactional
+    public User register(RegisterRequest request) throws UserDuplicateException {
+        final String email = normalizeEmail(request.getEmail());
+        
+        // Verificar si el email ya existe
+        if (userRepository.existsByEmail(email)) {
+            throw new UserDuplicateException();
+        }
+        
+        // Verificar si el teléfono ya existe (si se proporciona)
+        if (request.getPhone() != null && userRepository.existsByPhone(request.getPhone())) {
+            throw new UserDuplicateException();
+        }
+
+        // Crear nuevo usuario
+        User user = new User();
+        user.setName(request.getName());
+        user.setEmail(email);
+        user.setPassword(request.getPassword()); // TODO: Hash password when security is configured
+        user.setPhone(request.getPhone());
+        user.setAddress(request.getAddress());
+        user.setCity(request.getCity());
+        user.setState(request.getState());
+        user.setZip(request.getZip());
+        user.setCountry(request.getCountry());
+        user.setRole(Role.USER); // Por defecto, los usuarios registrados son USER
+
+        return userRepository.save(user);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public User login(LoginRequest request) throws UserInvalidCredentialsException {
+        final String email = normalizeEmail(request.getEmail());
+        
+        // Buscar usuario por email
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new UserInvalidCredentialsException());
+        
+        // Verificar contraseña (sin hash por ahora)
+        if (!request.getPassword().equals(user.getPassword())) {
+            throw new UserInvalidCredentialsException();
+        }
+
+        return user;
     }
 }

@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.entity.User;
 import com.entity.dto.UserRequest;
+import com.exceptions.UserDuplicateException;
+import com.exceptions.UserNotFoundException;
 import com.service.UserService;
 
 import lombok.RequiredArgsConstructor;
@@ -30,12 +32,12 @@ public class UserController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public User create(@RequestBody UserRequest request) {
+    public User create(@RequestBody UserRequest request) throws UserDuplicateException {
         return userService.create(request);
     }
 
     @GetMapping("/{id}")
-    public User getById(@PathVariable UUID id) {
+    public User getById(@PathVariable UUID id) throws UserNotFoundException {
         return userService.getById(id);
     }
 
@@ -45,13 +47,13 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public User update(@PathVariable UUID id, @RequestBody UserRequest request) {
+    public User update(@PathVariable UUID id, @RequestBody UserRequest request) throws UserNotFoundException, UserDuplicateException {
         return userService.update(id, request);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable UUID id) {
+    public void delete(@PathVariable UUID id) throws UserNotFoundException {
         userService.delete(id);
     }
 }

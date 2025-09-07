@@ -50,17 +50,28 @@ public class ProductServiceImpl implements ProductService {
         return product;
     }
 
-    public Product updateProduct(UUID productId, String name, String description, double price, long stock, UUID categoryId) throws ProductNotFoundException, CategoryNotFoundException {
+    public Product updateProduct(UUID productId, String name, String description, Double price, Long stock, UUID categoryId) throws ProductNotFoundException, CategoryNotFoundException {
         Product product = productRepository.findById(productId).orElseThrow(() -> new ProductNotFoundException());
         
-        Category category = categoryService.getCategoryById(categoryId)
-            .orElseThrow(() -> new CategoryNotFoundException());
+        // Solo actualizar campos que no sean null
+        if (name != null) {
+            product.setName(name);
+        }
+        if (description != null) {
+            product.setDescription(description);
+        }
+        if (price != null) {
+            product.setPrice(price);
+        }
+        if (stock != null) {
+            product.setStock(stock);
+        }
+        if (categoryId != null && !categoryId.equals(product.getCategory().getId())) {
+            Category category = categoryService.getCategoryById(categoryId)
+                .orElseThrow(() -> new CategoryNotFoundException());
+            product.setCategory(category);
+        }
         
-        product.setName(name);
-        product.setDescription(description);
-        product.setPrice(price);
-        product.setStock(stock);
-        product.setCategory(category);
         return productRepository.save(product);
     }
 
