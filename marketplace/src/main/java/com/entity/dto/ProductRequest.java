@@ -8,8 +8,8 @@ import lombok.Data;
 public class ProductRequest {
     private String name;
     private String description;
-    private double price;
-    private long stock;
+    private Double price;  // Cambio de double a Double para permitir null
+    private Long stock;    // Cambio de long a Long para permitir null
     
     @JsonProperty("category_id")
     private UUID categoryId;

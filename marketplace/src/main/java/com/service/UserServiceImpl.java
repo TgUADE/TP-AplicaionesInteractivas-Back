@@ -4,17 +4,15 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.entity.Role;
 import com.entity.User;
-import com.entity.dto.LoginRequest;
-import com.entity.dto.RegisterRequest;
 import com.entity.dto.UserRequest;
 import com.exceptions.UserDuplicateException;
-import com.exceptions.UserInvalidCredentialsException;
 import com.exceptions.UserNotFoundException;
 import com.repository.UserRepository;
 
@@ -24,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
@@ -39,7 +38,7 @@ public class UserServiceImpl implements UserService {
         User u = new User();
         applyRequest(u, request, true);
         u.setEmail(email);
-        u.setPassword(request.getPassword());
+        u.setPassword(passwordEncoder.encode(request.getPassword()));
         
         // Aca asignamos el rol de USER por defecto si no se especifica
         if (u.getRole() == null) {
@@ -52,6 +51,14 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public User getById(UUID id) throws UserNotFoundException {
         return userRepository.findById(id)
+            .orElseThrow(() -> new UserNotFoundException());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public User getByEmail(String email) throws UserNotFoundException {
+        final String normalizedEmail = normalizeEmail(email);
+        return userRepository.findByEmail(normalizedEmail)
             .orElseThrow(() -> new UserNotFoundException());
     }
 
@@ -96,6 +103,7 @@ public class UserServiceImpl implements UserService {
 
     private void applyRequest(User u, UserRequest r, boolean isCreate) {
         if (r.getName() != null)            u.setName(r.getName());
+        if (r.getSurname() != null)         u.setSurname(r.getSurname());
         if (r.getPhone() != null)           u.setPhone(r.getPhone());
         if (r.getAddress() != null)         u.setAddress(r.getAddress());
         if (r.getCity() != null)            u.setCity(r.getCity());
@@ -113,50 +121,4 @@ public class UserServiceImpl implements UserService {
         return email == null ? null : email.trim().toLowerCase();
     }
 
-    @Override
-    @Transactional
-    public User register(RegisterRequest request) throws UserDuplicateException {
-        final String email = normalizeEmail(request.getEmail());
-        
-        // Verificar si el email ya existe
-        if (userRepository.existsByEmail(email)) {
-            throw new UserDuplicateException();
-        }
-        
-        // Verificar si el teléfono ya existe
-        if (request.getPhone() != null && userRepository.existsByPhone(request.getPhone())) {
-            throw new UserDuplicateException();
-        }
-
-        // Crear nuevo usuario
-        User user = new User();
-        user.setName(request.getName());
-        user.setEmail(email);
-        user.setPassword(request.getPassword());
-        user.setPhone(request.getPhone());
-        user.setAddress(request.getAddress());
-        user.setCity(request.getCity());
-        user.setState(request.getState());
-        user.setZip(request.getZip());
-        user.setCountry(request.getCountry());
-        user.setRole(Role.USER); 
-
-        return userRepository.save(user);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public User login(LoginRequest request) throws UserInvalidCredentialsException {
-        final String email = normalizeEmail(request.getEmail());
-        
-        // Buscar usuario por email
-        User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new UserInvalidCredentialsException());
-        
-        if (!request.getPassword().equals(user.getPassword())) {
-            throw new UserInvalidCredentialsException();
-        }
-
-        return user;
-    }
 }

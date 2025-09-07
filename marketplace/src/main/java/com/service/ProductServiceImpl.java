@@ -1,6 +1,7 @@
 package com.service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -34,7 +35,8 @@ public class ProductServiceImpl implements ProductService {
 
     public Product createProduct(String name, String description, double price, long stock, UUID categoryId) throws ProductDuplicateException, CategoryNotFoundException {
         List<Product> products = productRepository.findAll();
-        if (products.stream().anyMatch(product -> product.getDescription().equals(description))) {
+        if (products.stream().anyMatch(product -> 
+            Objects.equals(product.getName(), name))) {
             throw new ProductDuplicateException();
         }
         

@@ -50,8 +50,8 @@ public class ProductController {
         Product result = productService.createProduct(
             productRequest.getName(), 
             productRequest.getDescription(), 
-            productRequest.getPrice(), 
-            productRequest.getStock(),
+            productRequest.getPrice() != null ? productRequest.getPrice() : 0.0, 
+            productRequest.getStock() != null ? productRequest.getStock() : 0L,
             productRequest.getCategoryId()
         );
         return ResponseEntity.created(URI.create("/products/" + result.getId())).body(result);
@@ -69,8 +69,8 @@ public class ProductController {
             productId, 
             productRequest.getName(), 
             productRequest.getDescription(), 
-            productRequest.getPrice(), 
-            productRequest.getStock(),
+            productRequest.getPrice(),  // Ahora puede ser null
+            productRequest.getStock(),  // Ahora puede ser null
             productRequest.getCategoryId()
         );
         return ResponseEntity.ok(result);

@@ -1,17 +1,19 @@
 package com.service;
 
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.auth.AuthenticationRequest;
 import com.auth.AuthenticationResponse;
-import com.auth.RegisterRequest;
 import com.config.JwtService;
 import com.entity.Role;
 import com.entity.User;
-import com.repository.UserRepository;
+import com.entity.dto.UserRequest;
+import com.exceptions.UserDuplicateException;
+import com.exceptions.UserInvalidCredentialsException;
+import com.exceptions.UserNotFoundException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,42 +21,45 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthenticationService {
 
-    private final UserRepository repository;
-    private final PasswordEncoder passwordEncoder;
+    private final UserService userService;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
-    public AuthenticationResponse register(RegisterRequest request) {
-        var user = User.builder()
-                .name(request.getName() != null ? request.getName() : "")
-                .surname(request.getSurname() != null ? request.getSurname() : "")
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .phone(request.getPhone())
-                .address(request.getAddress())
-                .city(request.getCity())
-                .state(request.getState())
-                .zip(request.getZip())
-                .country(request.getCountry())
-                .role(request.getRole() != null ? request.getRole() : Role.USER)
-                .build();
-        repository.save(user);
+    public AuthenticationResponse register(UserRequest request) throws UserDuplicateException {
+        // Asegurar que el rol sea USER por defecto para registros públicos
+        if (request.getRole() == null) {
+            request.setRole(Role.USER);
+        }
+        
+        // Usar UserService para crear el usuario (ya incluye todas las validaciones)
+        User user = userService.create(request);
+        
+        // Generar JWT token
         var jwtToken = jwtService.generateToken(user);
         return AuthenticationResponse.builder()
                 .token(jwtToken)
                 .build();
     }
 
-    public AuthenticationResponse authenticate(AuthenticationRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()));
-        var user = repository.findByEmail(request.getEmail())
-                .orElseThrow();
-        var jwtToken = jwtService.generateToken(user);
-        return AuthenticationResponse.builder()
-                .token(jwtToken)
-                .build();
+    public AuthenticationResponse authenticate(AuthenticationRequest request) throws UserInvalidCredentialsException {
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()));
+        } catch (BadCredentialsException e) {
+            throw new UserInvalidCredentialsException();
+        }
+        
+        try {
+            var user = userService.getByEmail(request.getEmail());
+            var jwtToken = jwtService.generateToken(user);
+            return AuthenticationResponse.builder()
+                    .token(jwtToken)
+                    .build();
+        } catch (UserNotFoundException e) {
+            // Esto no debería pasar ya que AuthenticationManager ya validó las credenciales
+            throw new RuntimeException("User not found after successful authentication", e);
+        }
     }
 }

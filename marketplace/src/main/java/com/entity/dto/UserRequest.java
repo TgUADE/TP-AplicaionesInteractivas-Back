@@ -11,6 +11,7 @@ import lombok.Data;
 public class UserRequest {
     @NotBlank(message = "El nombre es requerido")
     private String name;
+    private String surname;
     @Email(message = "El email no es válido")
     @NotBlank(message = "El email es requerido")
     private String email;

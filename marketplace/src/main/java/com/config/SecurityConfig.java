@@ -8,7 +8,12 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 import com.entity.Role;
 
@@ -34,7 +39,7 @@ public class SecurityConfig {
                                                 .requestMatchers("/error/**").permitAll()
                                                 .requestMatchers("/products/**").hasAuthority(Role.ADMIN.name())
                                                 .requestMatchers("/categories/**").hasAuthority(Role.ADMIN.name())
-                                                .requestMatchers("/carts/**").authenticated() 
+                                                .requestMatchers("/carts/**").authenticated()
                                 .requestMatchers("/orders/user/**").hasAuthority(Role.ADMIN.name())
                                 .requestMatchers(HttpMethod.PUT, "/orders/**").hasAuthority(Role.ADMIN.name())
                                 .requestMatchers(HttpMethod.DELETE, "/orders/**").hasAuthority(Role.ADMIN.name())
@@ -42,10 +47,34 @@ public class SecurityConfig {
                                 .requestMatchers("/orders/**").authenticated()
                                 .anyRequest()
                                                 .authenticated())
+                                .exceptionHandling(exceptions -> exceptions
+                                                .accessDeniedHandler(accessDeniedHandler()))
                                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
                                 .authenticationProvider(authenticationProvider)
                                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
                 return http.build();
+        }
+
+        @Bean
+        public AccessDeniedHandler accessDeniedHandler() {
+                return (HttpServletRequest request, HttpServletResponse response, 
+                        org.springframework.security.access.AccessDeniedException accessDeniedException) -> {
+                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                        response.setContentType("application/json");
+                        response.setCharacterEncoding("UTF-8");
+                        
+                        String jsonResponse = """
+                                {
+                                    "timestamp": "%s",
+                                    "status": 403,
+                                    "error": "Forbidden",
+                                    "message": "No tienes permisos para realizar esta acción. Se requiere rol de administrador.",
+                                    "path": "%s"
+                                }
+                                """.formatted(java.time.LocalDateTime.now(), request.getRequestURI());
+                        
+                        response.getWriter().write(jsonResponse);
+                };
         }
 }

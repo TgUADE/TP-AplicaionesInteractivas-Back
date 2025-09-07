@@ -6,7 +6,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.entity.dto.UserRequest;
+import com.exceptions.UserDuplicateException;
+import com.exceptions.UserInvalidCredentialsException;
 import com.service.AuthenticationService;
+
+import jakarta.validation.Valid;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,13 +24,13 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthenticationResponse> register(
-            @RequestBody RegisterRequest request) {
+            @Valid @RequestBody UserRequest request) throws UserDuplicateException {
         return ResponseEntity.ok(service.register(request));
     }
 
-    @PostMapping("/authenticate")
+    @PostMapping("/login")
     public ResponseEntity<AuthenticationResponse> authenticate(
-            @RequestBody AuthenticationRequest request) {
+            @RequestBody AuthenticationRequest request) throws UserInvalidCredentialsException {
         return ResponseEntity.ok(service.authenticate(request));
     }
 }
