@@ -21,8 +21,7 @@ import lombok.RequiredArgsConstructor;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    // private final PasswordEncoder passwordEncoder;        // Comment out until security is configured
-
+    
     @Override
     @Transactional
     public User create(UserRequest request) {
@@ -35,11 +34,11 @@ public class UserServiceImpl implements UserService {
         }
 
         User u = new User();
-        applyRequest(u, request, /*isCreate=*/true);
+        applyRequest(u, request, true);
         u.setEmail(email);
-        u.setPassword(request.getPassword()); // TODO: Use passwordEncoder when security is configured
-        
-        // Asignar rol por defecto si no se especifica
+        u.setPassword(request.getPassword()); 
+
+        // Aca asignamos el rol por defecto si no se especifica
         if (u.getRole() == null) {
             Role defaultRole = roleRepository.findByName("USER")
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Rol USER no encontrado"));
@@ -67,7 +66,7 @@ public class UserServiceImpl implements UserService {
         User u = userRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
 
-        // Email: si cambia, validar unicidad
+        // Si el email cambia hay que validarlo de nuevo
         if (request.getEmail() != null) {
             String newEmail = normalizeEmail(request.getEmail());
             if (!newEmail.equalsIgnoreCase(u.getEmail()) && userRepository.existsByEmail(newEmail)) {
@@ -76,12 +75,11 @@ public class UserServiceImpl implements UserService {
             u.setEmail(newEmail);
         }
 
-        // Password: solo si viene y no es blanco
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
-            u.setPassword(request.getPassword()); // TODO: Use passwordEncoder when security is configured
+            u.setPassword(request.getPassword()); 
         }
 
-        applyRequest(u, request, /*isCreate=*/false);
+        applyRequest(u, request, false);
 
         return userRepository.save(u);
     }
@@ -95,7 +93,7 @@ public class UserServiceImpl implements UserService {
         userRepository.deleteById(id);
     }
 
-    /** Mapea campos del DTO a la entidad (reuso en create/update). */
+  
     private void applyRequest(User u, UserRequest r, boolean isCreate) {
         if (r.getName() != null)            u.setName(r.getName());
         if (r.getPhone() != null)           u.setPhone(r.getPhone());
@@ -104,17 +102,13 @@ public class UserServiceImpl implements UserService {
         if (r.getState() != null)           u.setState(r.getState());
         if (r.getZip() != null)             u.setZip(r.getZip());
         if (r.getCountry() != null)         u.setCountry(r.getCountry());
-        // if (r.getDescription() != null)     u.setDescription(r.getDescription()); // TODO: Add description field to UserRequest
-
-        // Asignar rol si se especifica roleId
+        
+        // Si especifica roleId, le asignamos el rol
         if (r.getRoleId() != null) {
             Role role = roleRepository.findById(r.getRoleId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Rol no válido"));
             u.setRole(role);
         }
-
-        // Si en tu DTO todavía tenés Role completo (no recomendado), podrías:
-        // if (r.getRole() != null) u.setRole(r.getRole());
     }
 
     private String normalizeEmail(String email) {

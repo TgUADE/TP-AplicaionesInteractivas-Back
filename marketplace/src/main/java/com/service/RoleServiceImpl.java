@@ -20,10 +20,13 @@ public class RoleServiceImpl implements RoleService {
 
     private final RoleRepository roleRepository;
 
+    
     @Override
     @Transactional
     public Role create(RoleRequest request) {
         final String name = normalizeName(request.getName());
+        
+        // Aca verficamos si el rol ya existe
         if (roleRepository.existsByName(name)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "El rol ya existe");
         }
@@ -35,6 +38,7 @@ public class RoleServiceImpl implements RoleService {
         return roleRepository.save(role);
     }
 
+   
     @Override
     @Transactional(readOnly = true)
     public Role getById(UUID id) {
@@ -42,20 +46,25 @@ public class RoleServiceImpl implements RoleService {
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Rol no encontrado"));
     }
 
+
     @Override
     @Transactional(readOnly = true)
     public List<Role> list() {
         return roleRepository.findAll();
     }
 
+  
     @Override
     @Transactional
     public Role update(UUID id, RoleRequest request) {
+    
         Role role = roleRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Rol no encontrado"));
 
+        // Aca actualizamos el nombre del rol solo si se especifica
         if (request.getName() != null) {
             String newName = normalizeName(request.getName());
+            // Y volvemos a verificar si el nuevo nombre ya existe
             if (!newName.equalsIgnoreCase(role.getName()) && roleRepository.existsByName(newName)) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un rol con ese nombre");
             }
@@ -69,15 +78,19 @@ public class RoleServiceImpl implements RoleService {
         return roleRepository.save(role);
     }
 
+   
     @Override
     @Transactional
     public void delete(UUID id) {
+        // Antes de eliminarlo tenemos que verificar si existe
         if (!roleRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Rol no encontrado");
         }
+
         roleRepository.deleteById(id);
     }
 
+    // Esto lo agregamos para ajustar el nombre del rol por si acaso
     private String normalizeName(String name) {
         if (name == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El nombre del rol es obligatorio");
