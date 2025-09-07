@@ -34,7 +34,6 @@ public class JwtService {
         if (userDetails instanceof User) {
             userId = ((User) userDetails).getId().toString();
         } else {
-            // Fallback en caso de que no sea instancia de User
             userId = userDetails.getUsername();
         }
         
@@ -67,7 +66,7 @@ public class JwtService {
         return extractClaim(token, Claims::getSubject);
     }
     
-    // Mantenemos este método para compatibilidad, pero ahora retorna el UUID
+ 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }

@@ -35,7 +35,7 @@ public class ApplicationConfig {
                 return userByEmail.get();
             }
             
-            // Si no encontramos por email, intentamos por UUID (para JWT validation)
+            // Si no encontramos por email, intentamos por UUID
             return repository.findByUuidString(identifier)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
         };

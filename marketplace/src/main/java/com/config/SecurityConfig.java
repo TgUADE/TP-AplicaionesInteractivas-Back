@@ -34,7 +34,7 @@ public class SecurityConfig {
                                                 .requestMatchers("/error/**").permitAll()
                                                 .requestMatchers("/products/**").hasAuthority(Role.ADMIN.name())
                                                 .requestMatchers("/categories/**").hasAuthority(Role.ADMIN.name())
-                                                .requestMatchers("/carts/**").authenticated() // Todos los endpoints de carrito requieren autenticación
+                                                .requestMatchers("/carts/**").authenticated() 
                                 .requestMatchers("/orders/user/**").hasAuthority(Role.ADMIN.name())
                                 .requestMatchers(HttpMethod.PUT, "/orders/**").hasAuthority(Role.ADMIN.name())
                                 .requestMatchers(HttpMethod.DELETE, "/orders/**").hasAuthority(Role.ADMIN.name())
