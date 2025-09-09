@@ -54,8 +54,6 @@ public class CartServiceImpl implements CartService {
         Cart cart = new Cart();
         cart.setUser(user);
         cart.setCreatedAt(java.time.LocalDateTime.now());
-        // cart.setProducts(request.getProducts()); // Descomentar si CartRequest tiene
-        // productos
         return cartRepository.save(cart);
     }
 
@@ -94,7 +92,6 @@ public class CartServiceImpl implements CartService {
     @Override
     @Transactional
     public Cart addProductToCart(UUID cartId, UUID productId) {
-        // Método legacy - agregar con cantidad 1
         addProductToCartWithQuantity(cartId, productId, 1);
         return cartRepository.findById(cartId)
                 .orElseThrow(com.exceptions.CartNotFoundException::new);

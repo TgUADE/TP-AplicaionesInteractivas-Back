@@ -56,7 +56,6 @@ public class OrderController {
         return ResponseEntity.ok(result);
     }
 
-    // Obtener todas las órdenes del usuario autenticado (extraído del JWT)
     @GetMapping("/my-orders")
     public ResponseEntity<List<Order>> getMyOrders() {
         User authenticatedUser = getAuthenticatedUser();
@@ -64,7 +63,6 @@ public class OrderController {
         return ResponseEntity.ok(orders);
     }
 
-    // Obtener todas las órdenes de un usuario específico (solo ADMIN)
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Order>> getOrdersByUserId(@PathVariable UUID userId) {
         User authenticatedUser = getAuthenticatedUser();
@@ -78,7 +76,6 @@ public class OrderController {
         return ResponseEntity.ok(orders);
     }
 
-    // Obtener todas las órdenes que contienen un producto
     @GetMapping("/product/{productId}")
     public ResponseEntity<List<Order>> getOrdersByProductId(@PathVariable UUID productId) {
         List<Order> orders = orderService.findByProductId(productId);
@@ -119,9 +116,7 @@ public class OrderController {
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * Método utilitario para extraer el usuario autenticado del JWT
-     */
+   
     private User getAuthenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof User) {
@@ -130,9 +125,7 @@ public class OrderController {
         throw new RuntimeException("Usuario no autenticado");
     }
 
-    /**
-     * Método utilitario para validar que el carrito pertenece al usuario autenticado
-     */
+
     private void validateCartOwnership(UUID cartId) {
         User authenticatedUser = getAuthenticatedUser();
         com.entity.Cart cart = cartService.getCartById(cartId)
@@ -143,9 +136,7 @@ public class OrderController {
         }
     }
 
-    /**
-     * Crear una orden desde el carrito (solo si pertenece al usuario autenticado)
-     */
+   
     @PostMapping("/{cartId}")
     public ResponseEntity<Order> createOrderFromCart(
             @PathVariable UUID cartId, 

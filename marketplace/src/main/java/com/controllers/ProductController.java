@@ -69,8 +69,8 @@ public class ProductController {
             productId, 
             productRequest.getName(), 
             productRequest.getDescription(), 
-            productRequest.getPrice(),  // Ahora puede ser null
-            productRequest.getStock(),  // Ahora puede ser null
+            productRequest.getPrice(),  
+            productRequest.getStock(),
             productRequest.getCategoryId()
         );
         return ResponseEntity.ok(result);
