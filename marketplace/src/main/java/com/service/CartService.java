@@ -31,7 +31,6 @@ public interface CartService {
 
     Cart removeProductFromCart(UUID cartId, UUID productId);
     
-    // Nuevos métodos con cantidades
     CartProduct addProductToCartWithQuantity(UUID cartId, UUID productId, Integer quantity);
     
     CartProduct updateProductQuantityInCart(UUID cartId, UUID productId, Integer quantity);

@@ -13,7 +13,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 import com.entity.Role;
 
@@ -35,11 +34,19 @@ public class SecurityConfig {
                                 .csrf(AbstractHttpConfigurer::disable)
                                 .cors(AbstractHttpConfigurer::disable)
                                 .authorizeHttpRequests(req -> req
-                                                .requestMatchers("/api/v1/auth/**").permitAll()
-                                                .requestMatchers("/error/**").permitAll()
-                                                .requestMatchers("/products/**").hasAuthority(Role.ADMIN.name())
-                                                .requestMatchers("/categories/**").hasAuthority(Role.ADMIN.name())
-                                                .requestMatchers("/carts/**").authenticated()
+                                .requestMatchers("/api/v1/auth/**").permitAll()
+                                .requestMatchers("/error/**").permitAll()
+                                .requestMatchers(HttpMethod.GET,"/products/**").permitAll()
+                                .requestMatchers(HttpMethod.GET,"/categories/**").permitAll()
+                                .requestMatchers(HttpMethod.PUT,"/products/**").hasAuthority(Role.ADMIN.name())
+                                .requestMatchers(HttpMethod.DELETE,"/products/**").hasAuthority(Role.ADMIN.name())
+                                .requestMatchers(HttpMethod.POST,"/products/**").hasAuthority(Role.ADMIN.name())
+                                .requestMatchers(HttpMethod.PUT,"/categories/**").hasAuthority(Role.ADMIN.name())
+                                .requestMatchers(HttpMethod.DELETE,"/categories/**").hasAuthority(Role.ADMIN.name())
+                                .requestMatchers(HttpMethod.POST,"/categories/**").hasAuthority(Role.ADMIN.name())
+                                // Los carritos son accesibles para usuarios autenticados (validación de propiedad en el controlador)
+                                .requestMatchers(HttpMethod.GET,"/carts/{cartId}").hasAuthority(Role.ADMIN.name())
+                                .requestMatchers(HttpMethod.GET,"/carts/").authenticated()
                                 .requestMatchers("/orders/user/**").hasAuthority(Role.ADMIN.name())
                                 .requestMatchers(HttpMethod.PUT, "/orders/**").hasAuthority(Role.ADMIN.name())
                                 .requestMatchers(HttpMethod.DELETE, "/orders/**").hasAuthority(Role.ADMIN.name())
