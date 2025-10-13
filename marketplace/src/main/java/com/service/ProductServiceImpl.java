@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 import com.entity.Category;
 import com.entity.Product;
+import com.entity.Promotion;
+import com.entity.dto.ProductResponse;
 import com.exceptions.CategoryNotFoundException;
 import com.exceptions.ProductDuplicateException;
 import com.exceptions.ProductNotFoundException;
@@ -24,8 +26,9 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     private CategoryService categoryService;
 
-    public List<Product> getProducts() {
-        return productRepository.findAll();
+    public List<ProductResponse> getProducts() {
+        List<Product> allProducts = productRepository.findAll();
+        return toProductResponseList(allProducts);
     }
 
     public Optional<Product> getProductById(UUID productId) {
@@ -77,14 +80,82 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.save(product);
     }
 
-    public List<Product> getProductsByCategory(UUID categoryId) throws CategoryNotFoundException {
+    public List<ProductResponse> getProductsByCategory(UUID categoryId) throws CategoryNotFoundException {
         categoryService.getCategoryById(categoryId)
             .orElseThrow(() -> new CategoryNotFoundException());
         
-        return productRepository.findAll().stream()
+        List<Product> products = productRepository.findAll().stream()
             .filter(product -> product.getCategory() != null && 
                     product.getCategory().getId().equals(categoryId))
             .collect(java.util.stream.Collectors.toList());
+            
+        return toProductResponseList(products);
     }
+
+    /**
+     * Convierte una entidad Product a ProductResponse incluyendo información de promociones
+     */
+    @Override
+    public ProductResponse toProductResponse(Product product) {
+        ProductResponse response = new ProductResponse();
+        response.setId(product.getId());
+        response.setName(product.getName());
+        response.setDescription(product.getDescription());
+        response.setOriginalPrice(product.getPrice());
+        response.setCurrentPrice(product.getCurrentPrice());
+        response.setStock(product.getStock());
+        response.setCategoryId(product.getCategory().getId());
+        response.setCategoryName(product.getCategory().getDescription());
+        
+        // Asignar imágenes del producto
+        response.setImages(product.getImages());
+        
+        // Solo incluir información de promoción si existe (más eficiente)
+        if (product.hasActivePromotion()) {
+            Promotion activePromotion = product.getActivePromotion().get();
+            
+            ProductResponse.PromotionSummary promotionSummary = new ProductResponse.PromotionSummary();
+            promotionSummary.setId(activePromotion.getId());
+            promotionSummary.setName(activePromotion.getName());
+            promotionSummary.setType(activePromotion.getType().toString());
+            promotionSummary.setValue(activePromotion.getValue());
+            promotionSummary.setEndDate(activePromotion.getEndDate().toString());
+            
+            response.setPromotion(promotionSummary);
+        } else {
+            response.setPromotion(null);
+        }
+        
+        return response;
+    }
+
+    /**
+     * Convierte una lista de Product a ProductResponse
+     */
+    public List<ProductResponse> toProductResponseList(List<Product> products) {
+        return products.stream()
+                .map(this::toProductResponse)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    /**
+     * Obtiene solo los productos que tienen promoción activa
+     */
+    @Override
+    public List<ProductResponse> getProductsOnSale() {
+        List<Product> allProducts = productRepository.findAll();
+        
+        // Filtrar solo productos con promoción activa
+        List<Product> productsOnSale = allProducts.stream()
+                .filter(Product::hasActivePromotion)
+                .collect(java.util.stream.Collectors.toList());
+        
+        // Convertir a ProductResponse
+        return toProductResponseList(productsOnSale);
+    }
+
+
+
+
 
 }

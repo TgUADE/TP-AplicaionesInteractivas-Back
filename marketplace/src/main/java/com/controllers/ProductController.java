@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.entity.Product;
 import com.entity.dto.ProductRequest;
+import com.entity.dto.ProductResponse;
 import com.exceptions.CategoryNotFoundException;
 import com.exceptions.ProductDuplicateException;
 import com.exceptions.ProductNotFoundException;
@@ -31,8 +32,9 @@ public class ProductController {
     private ProductServiceImpl productService;
 
     @GetMapping
-    public ResponseEntity<List<Product>> getProducts() {
-        return ResponseEntity.ok(productService.getProducts());
+    public ResponseEntity<List<ProductResponse>> getProducts() {
+        List<ProductResponse> response = productService.getProducts();
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{productId}")
@@ -74,6 +76,39 @@ public class ProductController {
             productRequest.getCategoryId()
         );
         return ResponseEntity.ok(result);
+    }
+
+    // Endpoints adicionales que devuelven ProductResponse con información de promociones
+    @GetMapping("/with-promotions")
+    public ResponseEntity<List<ProductResponse>> getProductsWithPromotions() {
+        List<ProductResponse> response = productService.getProducts();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{productId}/with-promotions")
+    public ResponseEntity<ProductResponse> getProductByIdWithPromotions(@PathVariable UUID productId) 
+            throws ProductNotFoundException {
+        Optional<Product> result = productService.getProductById(productId);
+        if (result.isPresent()) {
+            ProductResponse response = productService.toProductResponse(result.get());
+            return ResponseEntity.ok(response);
+        } else {
+            throw new ProductNotFoundException();
+        }
+    }
+
+    @GetMapping("/category/{categoryId}/with-promotions")
+    public ResponseEntity<List<ProductResponse>> getProductsByCategoryWithPromotions(@PathVariable UUID categoryId) 
+            throws CategoryNotFoundException {
+        List<ProductResponse> response = productService.getProductsByCategory(categoryId);
+        return ResponseEntity.ok(response);
+    }
+
+    // Endpoint específico para productos EN OFERTA únicamente
+    @GetMapping("/on-sale")
+    public ResponseEntity<List<ProductResponse>> getProductsOnSale() {
+        List<ProductResponse> response = productService.getProductsOnSale();
+        return ResponseEntity.ok(response);
     }
     
 }

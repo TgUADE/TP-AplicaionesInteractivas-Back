@@ -1,8 +1,11 @@
 package com.entity;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -55,4 +58,35 @@ public class Product {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<ProductImage> images;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<Promotion> promotions = new ArrayList<>();
+
+    /**
+     * Obtiene el precio actual del producto aplicando promoción si existe una válida
+     */
+    public double getCurrentPrice() {
+        return getActivePromotion()
+                .map(promo -> promo.calculateDiscountedPrice(this.price))
+                .orElse(this.price);
+    }
+
+    /**
+     * Obtiene la promoción activa del producto (si existe)
+     */
+    @JsonIgnore
+    public Optional<Promotion> getActivePromotion() {
+        return promotions.stream()
+                .filter(Promotion::isValid)
+                .findFirst();
+    }
+
+    /**
+     * Verifica si el producto tiene una promoción activa
+     */
+    @JsonIgnore
+    public boolean hasActivePromotion() {
+        return getActivePromotion().isPresent();
+    }
 }

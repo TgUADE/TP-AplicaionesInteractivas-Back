@@ -4,8 +4,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.entity.Category;
-import com.entity.Product;
 import com.entity.dto.CategoryRequest;
+import com.entity.dto.ProductResponse;
 import com.exceptions.CategoryDuplicateException;
 import com.exceptions.CategoryInUseException;
 import com.exceptions.CategoryNotFoundException;
@@ -49,7 +49,7 @@ public class CategoriesController {
     }
 
     @GetMapping("/{categoryId}/products")
-    public ResponseEntity<List<Product>> getProductsByCategory(@PathVariable UUID categoryId) throws CategoryNotFoundException {
+    public ResponseEntity<List<ProductResponse>> getProductsByCategory(@PathVariable UUID categoryId) throws CategoryNotFoundException {
         return ResponseEntity.ok(productService.getProductsByCategory(categoryId));
     }
 
