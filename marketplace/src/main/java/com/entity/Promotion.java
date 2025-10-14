@@ -87,17 +87,24 @@ public class Promotion {
      */
     public double calculateDiscountedPrice(double originalPrice) {
         if (!isValid()) {
-            return originalPrice;
+            return Math.round(originalPrice * 100.0) / 100.0;
         }
         
+        double discountedPrice;
         switch (type) {
             case PERCENTAGE:
-                return originalPrice - (originalPrice * value / 100);
+                discountedPrice = originalPrice - (originalPrice * value / 100);
+                break;
             case FIXED_AMOUNT:
-                double result = originalPrice - value;
-                return Math.max(result, 0); // No puede ser negativo
+                discountedPrice = originalPrice - value;
+                discountedPrice = Math.max(discountedPrice, 0); // No puede ser negativo
+                break;
             default:
-                return originalPrice;
+                discountedPrice = originalPrice;
+                break;
         }
+        
+        // Redondear a 2 decimales
+        return Math.round(discountedPrice * 100.0) / 100.0;
     }
 }

@@ -19,6 +19,15 @@ public class ProductResponse {
     @JsonProperty("current_price")
     private Double currentPrice;
     
+    // Métodos setter personalizados para redondear precios a 2 decimales
+    public void setOriginalPrice(Double originalPrice) {
+        this.originalPrice = originalPrice != null ? Math.round(originalPrice * 100.0) / 100.0 : null;
+    }
+    
+    public void setCurrentPrice(Double currentPrice) {
+        this.currentPrice = currentPrice != null ? Math.round(currentPrice * 100.0) / 100.0 : null;
+    }
+    
     private Long stock;
     
     @JsonProperty("category_id")
@@ -34,7 +43,6 @@ public class ProductResponse {
     private List<ProductImage> images;
     
     // Clase interna para información resumida de promoción
-    @Data
     public static class PromotionSummary {
         private UUID id;
         private String name;
@@ -43,5 +51,23 @@ public class ProductResponse {
         
         @JsonProperty("end_date")
         private String endDate;
+        
+        // Getters y setters
+        public UUID getId() { return id; }
+        public void setId(UUID id) { this.id = id; }
+        
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        
+        public String getType() { return type; }
+        public void setType(String type) { this.type = type; }
+        
+        public Double getValue() { return value; }
+        public void setValue(Double value) {
+            this.value = value != null ? Math.round(value * 100.0) / 100.0 : null;
+        }
+        
+        public String getEndDate() { return endDate; }
+        public void setEndDate(String endDate) { this.endDate = endDate; }
     }
 }
