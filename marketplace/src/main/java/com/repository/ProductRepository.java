@@ -23,4 +23,21 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
     @Query("SELECT p FROM Product p WHERE p.stock = :stock")
     List<Product> findByStock(@Param("stock") long stock);
     
+    // Método optimizado que carga productos con categorías (evita MultipleBagFetchException)
+    @Query("SELECT DISTINCT p FROM Product p " +
+           "LEFT JOIN FETCH p.category " +
+           "ORDER BY p.name")
+    List<Product> findAllWithCategories();
+    
+    // Método para cargar promociones de productos específicos
+    @Query("SELECT DISTINCT p FROM Product p " +
+           "LEFT JOIN FETCH p.promotions " +
+           "WHERE p IN :products")
+    List<Product> findPromotionsForProducts(@Param("products") List<Product> products);
+    
+    // Método para cargar imágenes de productos específicos
+    @Query("SELECT DISTINCT p FROM Product p " +
+           "LEFT JOIN FETCH p.images " +
+           "WHERE p IN :products")
+    List<Product> findImagesForProducts(@Param("products") List<Product> products);
 }

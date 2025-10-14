@@ -27,7 +27,20 @@ public class ProductServiceImpl implements ProductService {
     private CategoryService categoryService;
 
     public List<ProductResponse> getProducts() {
-        List<Product> allProducts = productRepository.findAll();
+        
+        
+        // 1. Cargar productos con categorías (1 consulta)
+        List<Product> allProducts = productRepository.findAllWithCategories();
+        
+        if (!allProducts.isEmpty()) {
+            // 2. Cargar promociones para todos los productos (1 consulta)
+            productRepository.findPromotionsForProducts(allProducts);
+            
+            // 3. Cargar imágenes para todos los productos (1 consulta)
+            productRepository.findImagesForProducts(allProducts);
+        }
+        
+        System.out.println("getProducts 3 - Loaded " + allProducts.size() + " products with 3 SQL queries total");
         return toProductResponseList(allProducts);
     }
 
@@ -84,10 +97,22 @@ public class ProductServiceImpl implements ProductService {
         categoryService.getCategoryById(categoryId)
             .orElseThrow(() -> new CategoryNotFoundException());
         
-        List<Product> products = productRepository.findAll().stream()
+        // 1. Cargar productos con categorías (1 consulta)
+        List<Product> allProducts = productRepository.findAllWithCategories();
+        
+        // Filtrar por categoría
+        List<Product> products = allProducts.stream()
             .filter(product -> product.getCategory() != null && 
                     product.getCategory().getId().equals(categoryId))
             .collect(java.util.stream.Collectors.toList());
+        
+        if (!products.isEmpty()) {
+            // 2. Cargar promociones para productos de esta categoría (1 consulta)
+            productRepository.findPromotionsForProducts(products);
+            
+            // 3. Cargar imágenes para productos de esta categoría (1 consulta)
+            productRepository.findImagesForProducts(products);
+        }
             
         return toProductResponseList(products);
     }
@@ -143,7 +168,16 @@ public class ProductServiceImpl implements ProductService {
      */
     @Override
     public List<ProductResponse> getProductsOnSale() {
-        List<Product> allProducts = productRepository.findAll();
+        // 1. Cargar productos con categorías (1 consulta)
+        List<Product> allProducts = productRepository.findAllWithCategories();
+        
+        if (!allProducts.isEmpty()) {
+            // 2. Cargar promociones para todos los productos (1 consulta)
+            productRepository.findPromotionsForProducts(allProducts);
+            
+            // 3. Cargar imágenes para todos los productos (1 consulta)
+            productRepository.findImagesForProducts(allProducts);
+        }
         
         // Filtrar solo productos con promoción activa
         List<Product> productsOnSale = allProducts.stream()

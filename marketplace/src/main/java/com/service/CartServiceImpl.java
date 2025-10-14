@@ -38,13 +38,22 @@ public class CartServiceImpl implements CartService {
     @Override
     @Transactional(readOnly = true)
     public List<Cart> getCarts() {
-        return cartRepository.findAll();
+        // 1. Cargar carritos con usuarios (1 consulta)
+        List<Cart> carts = cartRepository.findAllWithUsers();
+        
+        if (!carts.isEmpty()) {
+            // 2. Cargar productos de todos los carritos (1 consulta)
+            cartRepository.findCartProductsForCarts(carts);
+        }
+        
+        return carts;
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<Cart> getCartById(UUID cartId) {
-        return cartRepository.findById(cartId);
+        // Cargar carrito con usuario optimizado
+        return cartRepository.findByIdWithUser(cartId);
     }
 
     @Override
@@ -80,7 +89,15 @@ public class CartServiceImpl implements CartService {
     @Override
     @Transactional(readOnly = true)
     public List<Cart> findByUserId(UUID userId) {
-        return cartRepository.findByUserId(userId);
+        // 1. Cargar carritos del usuario con información del usuario (1 consulta)
+        List<Cart> carts = cartRepository.findByUserIdWithUser(userId);
+        
+        if (!carts.isEmpty()) {
+            // 2. Cargar productos de todos los carritos del usuario (1 consulta)
+            cartRepository.findCartProductsForCarts(carts);
+        }
+        
+        return carts;
     }
 
     @Override
@@ -93,7 +110,7 @@ public class CartServiceImpl implements CartService {
     @Transactional
     public Cart addProductToCart(UUID cartId, UUID productId) {
         addProductToCartWithQuantity(cartId, productId, 1);
-        return cartRepository.findById(cartId)
+        return cartRepository.findByIdWithUser(cartId)
                 .orElseThrow(com.exceptions.CartNotFoundException::new);
     }
 
@@ -101,20 +118,20 @@ public class CartServiceImpl implements CartService {
     @Transactional
     public Cart removeProductFromCart(UUID cartId, UUID productId) {
         cartProductRepository.deleteByCartIdAndProductId(cartId, productId);
-        return cartRepository.findById(cartId)
+        return cartRepository.findByIdWithUser(cartId)
                 .orElseThrow(com.exceptions.CartNotFoundException::new);
     }
 
     @Override
     @Transactional
     public CartProduct addProductToCartWithQuantity(UUID cartId, UUID productId, Integer quantity) {
-        Cart cart = cartRepository.findById(cartId)
+        Cart cart = cartRepository.findByIdWithUser(cartId)
                 .orElseThrow(com.exceptions.CartNotFoundException::new);
         com.entity.Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new com.exceptions.ProductNotFoundException("Product not found"));
         
-        // Verificar si el producto ya existe en el carrito
-        Optional<CartProduct> existingCartProduct = cartProductRepository.findByCartIdAndProductId(cartId, productId);
+        // Verificar si el producto ya existe en el carrito (con información optimizada)
+        Optional<CartProduct> existingCartProduct = cartProductRepository.findByCartIdAndProductIdWithProduct(cartId, productId);
         
         if (existingCartProduct.isPresent()) {
             // Si existe, sumar la cantidad
@@ -131,7 +148,7 @@ public class CartServiceImpl implements CartService {
     @Override
     @Transactional
     public CartProduct updateProductQuantityInCart(UUID cartId, UUID productId, Integer quantity) {
-        CartProduct cartProduct = cartProductRepository.findByCartIdAndProductId(cartId, productId)
+        CartProduct cartProduct = cartProductRepository.findByCartIdAndProductIdWithProduct(cartId, productId)
                 .orElseThrow(() -> new com.exceptions.ProductNotFoundException("Product not found in cart"));
         
         if (quantity <= 0) {
@@ -146,17 +163,19 @@ public class CartServiceImpl implements CartService {
     @Override
     @Transactional(readOnly = true)
     public List<CartProduct> getCartProducts(UUID cartId) {
-        return cartProductRepository.findByCartId(cartId);
+        // Usar método optimizado que carga productos con categorías
+        return cartProductRepository.findByCartIdWithProducts(cartId);
     }
 
     @Override
     @Transactional
     public Order createOrderFromCart(UUID cartId, CreateOrderFromCartRequest request) {
-        // Obtener el carrito con sus productos
-        Cart cart = cartRepository.findById(cartId)
+        // Obtener el carrito con usuario optimizado
+        Cart cart = cartRepository.findByIdWithUser(cartId)
                 .orElseThrow(() -> new CartNotFoundException("Carrito no encontrado"));
         
-        List<CartProduct> cartProducts = cartProductRepository.findByCartId(cartId);
+        // Obtener productos del carrito con información completa optimizada
+        List<CartProduct> cartProducts = cartProductRepository.findByCartIdWithProducts(cartId);
         
         if (cartProducts.isEmpty()) {
             throw new RuntimeException("No se puede crear una orden con un carrito vacío");
