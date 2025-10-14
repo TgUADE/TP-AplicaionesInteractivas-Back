@@ -45,6 +45,7 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.DELETE,"/categories/**").hasAuthority(Role.ADMIN.name())
                                 .requestMatchers(HttpMethod.POST,"/categories/**").hasAuthority(Role.ADMIN.name())
                                 // Los carritos son accesibles para usuarios autenticados (validación de propiedad en el controlador)
+                                .requestMatchers(HttpMethod.GET, "/carts/my-carts").permitAll()
                                 .requestMatchers(HttpMethod.GET,"/carts/{cartId}").hasAuthority(Role.ADMIN.name())
                                 .requestMatchers(HttpMethod.GET,"/carts/").authenticated()
                                 .requestMatchers("/orders/user/**").hasAuthority(Role.ADMIN.name())

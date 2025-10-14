@@ -65,6 +65,17 @@ public class CartController {
         return ResponseEntity.ok(result);
     }
 
+    @GetMapping("/my-carts")
+public ResponseEntity<List<Cart>> getMyCartsOptional() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication != null && authentication.getPrincipal() instanceof User) {
+        User user = (User) authentication.getPrincipal();
+        List<Cart> carts = cartService.findByUserId(user.getId());
+        return ResponseEntity.ok(carts);
+    }
+    return ResponseEntity.ok(java.util.Collections.emptyList());
+}
+
     @GetMapping()
     public ResponseEntity<List<Cart>> getMyCart() {
         User authenticatedUser = getAuthenticatedUser();
