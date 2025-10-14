@@ -44,7 +44,6 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.PUT,"/categories/**").hasAuthority(Role.ADMIN.name())
                                 .requestMatchers(HttpMethod.DELETE,"/categories/**").hasAuthority(Role.ADMIN.name())
                                 .requestMatchers(HttpMethod.POST,"/categories/**").hasAuthority(Role.ADMIN.name())
-                                // Los carritos son accesibles para usuarios autenticados (validación de propiedad en el controlador)
                                 .requestMatchers(HttpMethod.GET, "/carts/my-carts").permitAll()
                                 .requestMatchers(HttpMethod.GET,"/carts/{cartId}").hasAuthority(Role.ADMIN.name())
                                 .requestMatchers(HttpMethod.GET,"/carts/").authenticated()
@@ -53,6 +52,10 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.DELETE, "/orders/**").hasAuthority(Role.ADMIN.name())
                                 .requestMatchers("/orders").hasAuthority(Role.ADMIN.name())
                                 .requestMatchers("/orders/**").authenticated()
+                                // Configuración de seguridad para favoritos (nuevos endpoints simplificados)
+                                .requestMatchers(HttpMethod.GET, "/api/favorites/**").authenticated()
+                                .requestMatchers(HttpMethod.POST, "/api/favorites/**").authenticated()
+                                .requestMatchers(HttpMethod.DELETE, "/api/favorites/**").authenticated()
                                 .anyRequest()
                                                 .authenticated())
                                 .exceptionHandling(exceptions -> exceptions
