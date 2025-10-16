@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -22,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -52,7 +54,13 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.DELETE, "/orders/**").hasAuthority(Role.ADMIN.name())
                                 .requestMatchers("/orders").hasAuthority(Role.ADMIN.name())
                                 .requestMatchers("/orders/**").authenticated()
-                                // Configuración de seguridad para favoritos (nuevos endpoints simplificados)
+                                // Operaciones del usuario actual
+                                .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
+                                .requestMatchers(HttpMethod.PUT, "/api/users/me").authenticated()
+                                .requestMatchers(HttpMethod.DELETE, "/api/users/me").authenticated()
+                                // Operaciones de admin sobre usuarios
+                                .requestMatchers("/api/users/**").hasAuthority(Role.ADMIN.name())
+                                
                                 .requestMatchers(HttpMethod.GET, "/api/favorites/**").authenticated()
                                 .requestMatchers(HttpMethod.POST, "/api/favorites/**").authenticated()
                                 .requestMatchers(HttpMethod.DELETE, "/api/favorites/**").authenticated()
