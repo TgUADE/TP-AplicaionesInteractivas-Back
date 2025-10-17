@@ -57,7 +57,6 @@ public class PromotionController {
 
     // Crear nueva promoción - Solo ADMIN
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PromotionResponse> createPromotion(@RequestBody PromotionRequest promotionRequest) 
             throws ProductNotFoundException, PromotionValidationException {
         Promotion result = promotionService.createPromotion(promotionRequest);
@@ -67,7 +66,6 @@ public class PromotionController {
 
     // Actualizar promoción - Solo ADMIN
     @PutMapping("/{promotionId}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PromotionResponse> updatePromotion(
             @PathVariable UUID promotionId, 
             @RequestBody PromotionRequest promotionRequest) 
@@ -79,7 +77,6 @@ public class PromotionController {
 
     // Eliminar promoción - Solo ADMIN
     @DeleteMapping("/{promotionId}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deletePromotion(@PathVariable UUID promotionId) 
             throws PromotionNotFoundException {
         promotionService.deletePromotion(promotionId);
@@ -127,7 +124,6 @@ public class PromotionController {
 
     // Activar promoción - Solo ADMIN
     @PutMapping("/{promotionId}/activate")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PromotionResponse> activatePromotion(@PathVariable UUID promotionId) 
             throws PromotionNotFoundException {
         promotionService.activatePromotion(promotionId);
@@ -138,7 +134,6 @@ public class PromotionController {
 
     // Desactivar promoción - Solo ADMIN
     @PutMapping("/{promotionId}/deactivate")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PromotionResponse> deactivatePromotion(@PathVariable UUID promotionId) 
             throws PromotionNotFoundException {
         promotionService.deactivatePromotion(promotionId);
@@ -149,7 +144,6 @@ public class PromotionController {
 
     // Limpiar promociones expiradas - Solo ADMIN
     @PostMapping("/cleanup")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> cleanupExpiredPromotions() {
         promotionService.cleanupExpiredPromotions();
         return ResponseEntity.ok("Expired promotions have been deactivated");
