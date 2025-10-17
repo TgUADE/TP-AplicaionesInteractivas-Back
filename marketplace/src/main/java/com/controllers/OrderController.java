@@ -84,6 +84,10 @@ public class OrderController {
 
     @PostMapping
     public ResponseEntity<Object> createOrder(@RequestBody OrderRequest orderRequest) {
+        // Obtener el usuario autenticado del JWT y asignarlo al request
+        User authenticatedUser = getAuthenticatedUser();
+        orderRequest.setUserId(authenticatedUser.getId());
+        
         Order result = orderService.createOrder(orderRequest);
         return ResponseEntity.created(URI.create("/orders/" + result.getId())).body(result);
     }

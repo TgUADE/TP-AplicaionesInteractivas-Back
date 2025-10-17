@@ -10,4 +10,7 @@ public class OrderRequest {
     private UUID userId;
     private UUID cartId;
     private String status;
+    private String shippingAddress;    
+    private String billingAddress;     
+    private String paymentMethod;      
 }

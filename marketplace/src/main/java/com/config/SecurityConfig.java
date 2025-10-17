@@ -53,11 +53,15 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.GET, "/carts/my-carts").permitAll()
                                 .requestMatchers(HttpMethod.GET,"/carts/{cartId}").hasAuthority(Role.ADMIN.name())
                                 .requestMatchers(HttpMethod.GET,"/carts/").authenticated()
-                                .requestMatchers("/orders/user/**").hasAuthority(Role.ADMIN.name())
-                                .requestMatchers(HttpMethod.PUT, "/orders/**").hasAuthority(Role.ADMIN.name())
-                                .requestMatchers(HttpMethod.DELETE, "/orders/**").hasAuthority(Role.ADMIN.name())
-                                .requestMatchers("/orders").hasAuthority(Role.ADMIN.name())
-                                .requestMatchers("/orders/**").authenticated()
+                                // Órdenes - Usuario actual
+                                .requestMatchers(HttpMethod.GET, "/orders/my-orders").authenticated()
+                                .requestMatchers(HttpMethod.POST, "/orders").authenticated()
+
+                                // Órdenes - Administrador
+                                .requestMatchers(HttpMethod.GET, "/orders").hasAuthority(Role.ADMIN.name())
+                                .requestMatchers(HttpMethod.GET, "/orders/{orderId}").hasAuthority(Role.ADMIN.name())
+                                .requestMatchers(HttpMethod.PUT, "/orders/{orderId}").hasAuthority(Role.ADMIN.name())
+                                .requestMatchers(HttpMethod.DELETE, "/orders/{orderId}").hasAuthority(Role.ADMIN.name())
                                 // Operaciones del usuario actual
                                 .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
                                 .requestMatchers(HttpMethod.PUT, "/api/users/me").authenticated()
