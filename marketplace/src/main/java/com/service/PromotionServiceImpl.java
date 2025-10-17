@@ -66,14 +66,14 @@ public class PromotionServiceImpl implements PromotionService {
     public Promotion updatePromotion(UUID promotionId, PromotionRequest request) 
             throws PromotionNotFoundException, ProductNotFoundException, PromotionValidationException {
         
-        // Validar la solicitud completa
-        validatePromotionRequest(request);
-        
         Promotion promotion = promotionRepository.findById(promotionId)
             .orElseThrow(() -> new PromotionNotFoundException());
         
         Product product = productService.getProductById(request.getProductId())
             .orElseThrow(() -> new ProductNotFoundException());
+        
+        // Validar la solicitud completa, excluyendo la promoción actual de la validación de conflictos
+        validatePromotionRequest(request, promotionId);
         
         promotion.setName(request.getName());
         promotion.setDescription(request.getDescription());
@@ -219,6 +219,15 @@ public class PromotionServiceImpl implements PromotionService {
     // Implementación de validaciones
     @Override
     public void validatePromotionRequest(PromotionRequest request) throws PromotionValidationException, ProductNotFoundException {
+        validatePromotionRequest(request, null);
+    }
+
+    /**
+     * Validar promoción con posibilidad de excluir una promoción específica de la validación de conflictos
+     * @param request Datos de la promoción
+     * @param excludePromotionId ID de la promoción a excluir (null para no excluir ninguna)
+     */
+    private void validatePromotionRequest(PromotionRequest request, UUID excludePromotionId) throws PromotionValidationException, ProductNotFoundException {
         // Validar campos requeridos
         if (request.getName() == null || request.getName().trim().isEmpty()) {
             throw new PromotionValidationException("Promotion name is required");
@@ -246,8 +255,8 @@ public class PromotionServiceImpl implements PromotionService {
         productService.getProductById(request.getProductId())
             .orElseThrow(() -> new ProductNotFoundException());
         
-        // Verificar conflictos con otras promociones activas
-        if (hasActivePromotionConflict(request.getProductId(), request.getStartDate(), request.getEndDate(), null)) {
+        // Verificar conflictos con otras promociones activas, excluyendo la promoción especificada si existe
+        if (hasActivePromotionConflict(request.getProductId(), request.getStartDate(), request.getEndDate(), excludePromotionId)) {
             throw new PromotionValidationException("Product already has an active promotion in the specified date range");
         }
     }
