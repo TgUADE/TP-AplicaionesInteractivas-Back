@@ -66,15 +66,14 @@ public class CartController {
     }
 
     @GetMapping("/my-carts")
-public ResponseEntity<List<Cart>> getMyCartsOptional() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    if (authentication != null && authentication.getPrincipal() instanceof User) {
-        User user = (User) authentication.getPrincipal();
+    public ResponseEntity<List<Cart>> getMyCarts() {
+        User user = getAuthenticatedUser();
         List<Cart> carts = cartService.findByUserId(user.getId());
+        if (carts == null || carts.isEmpty()) {
+            throw new CartNotFoundException("No se encontraron carritos para el usuario");
+        }
         return ResponseEntity.ok(carts);
     }
-    return ResponseEntity.ok(java.util.Collections.emptyList());
-}
 
     @GetMapping()
     public ResponseEntity<List<Cart>> getMyCart() {

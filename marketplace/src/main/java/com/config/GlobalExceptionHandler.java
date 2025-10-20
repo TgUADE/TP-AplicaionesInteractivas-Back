@@ -29,4 +29,17 @@ public class GlobalExceptionHandler {
         
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }
+    @ExceptionHandler(com.exceptions.CartNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleCartNotFound(
+            com.exceptions.CartNotFoundException ex, HttpServletRequest request) {
+
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("timestamp", LocalDateTime.now());
+        errorResponse.put("status", HttpStatus.NOT_FOUND.value());
+        errorResponse.put("error", "Not Found");
+        errorResponse.put("message", ex.getMessage());
+        errorResponse.put("path", request.getRequestURI());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
 }
