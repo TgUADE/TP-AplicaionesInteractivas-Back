@@ -16,6 +16,9 @@ import com.exceptions.CategoryNotFoundException;
 import com.exceptions.ProductDuplicateException;
 import com.exceptions.ProductNotFoundException;
 import com.repository.ProductRepository;
+import com.repository.CartProductRepository;
+import com.repository.UserFavoriteRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -25,6 +28,29 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     private CategoryService categoryService;
+
+    @Autowired
+private CartProductRepository cartProductRepository;
+
+@Autowired
+private UserFavoriteRepository userFavoriteRepository;
+
+@Transactional
+public Product deleteProduct(UUID productId) {
+    Product product = productRepository.findById(productId)
+        .orElseThrow(() -> new ProductNotFoundException());
+    
+        // 1. Eliminar todas las referencias del producto en carritos
+        cartProductRepository.deleteByProductId(productId);
+    
+        // 2. Eliminar todas las referencias del producto en favoritos
+        userFavoriteRepository.deleteByProductId(productId);
+        
+        // 3. Ahora eliminar el producto
+        productRepository.deleteById(productId);
+    
+    return product;
+}
 
     public List<ProductResponse> getProducts() {
         
@@ -60,12 +86,6 @@ public class ProductServiceImpl implements ProductService {
             .orElseThrow(() -> new CategoryNotFoundException());
         
         return productRepository.save(new Product(name, description, price, stock, category));
-    }
-
-    public Product deleteProduct(UUID productId) {
-        Product product = productRepository.findById(productId).orElseThrow(() -> new ProductNotFoundException());
-        productRepository.deleteById(productId);
-        return product;
     }
 
     public Product updateProduct(UUID productId, String name, String description, Double price, Long stock, UUID categoryId) throws ProductNotFoundException, CategoryNotFoundException {
@@ -187,9 +207,5 @@ public class ProductServiceImpl implements ProductService {
         // Convertir a ProductResponse
         return toProductResponseList(productsOnSale);
     }
-
-
-
-
 
 }

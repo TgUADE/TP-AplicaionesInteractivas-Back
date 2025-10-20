@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.entity.UserFavorite;
 
@@ -31,6 +33,10 @@ public interface UserFavoriteRepository extends JpaRepository<UserFavorite, UUID
     
     // Eliminar favorito por usuario y producto
     void deleteByUserIdAndProductId(UUID userId, UUID productId);
+
+    @Modifying
+@Query("DELETE FROM UserFavorite uf WHERE uf.product.id = :productId")
+void deleteByProductId(@Param("productId") UUID productId);
     
     // Contar favoritos de un usuario
     long countByUserId(UUID userId);

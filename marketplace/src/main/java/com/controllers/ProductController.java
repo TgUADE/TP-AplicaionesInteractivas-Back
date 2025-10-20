@@ -62,9 +62,9 @@ public class ProductController {
     }
 
     @DeleteMapping("/{productId}")
-    public ResponseEntity<Product> deleteProduct(@PathVariable UUID productId) throws ProductNotFoundException {
+    public ResponseEntity<Object> deleteProduct(@PathVariable UUID productId) throws ProductNotFoundException {
         productService.deleteProduct(productId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(java.util.Collections.singletonMap("message", "Borrado con éxito"));
     }
 
     @PutMapping("/{productId}")
