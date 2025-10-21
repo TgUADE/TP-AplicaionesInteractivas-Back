@@ -59,11 +59,26 @@ public class CartServiceImpl implements CartService {
     @Override
     @Transactional
     public Cart createCart(UUID userId, CartRequest request) throws CartDuplicateException {
-        User user = userService.getById(userId);
-        Cart cart = new Cart();
-        cart.setUser(user);
-        cart.setCreatedAt(java.time.LocalDateTime.now());
-        return cartRepository.save(cart);
+        // Validar que el usuario existe antes de crear el carrito
+        User user = userService.getById(userId); // Esto lanza UserNotFoundException si no existe
+        
+        // Verificar que el usuario no sea null (validación adicional)
+        if (user == null) {
+            throw new RuntimeException("Usuario no encontrado con ID: " + userId);
+        }
+
+        //Verificar si el usuario ya tiene un carrito sin ordenes
+        Optional<Cart> existingCart = cartRepository.findLatestCartByUserIdWithoutOrder(userId);
+        if (existingCart.isPresent()) {
+            //Devuelve el carrito existente
+            return existingCart.get();
+        } else {
+            //Crear un nuevo carrito
+            Cart cart = new Cart();
+            cart.setUser(user);
+            cart.setCreatedAt(java.time.LocalDateTime.now());
+            return cartRepository.save(cart);
+        }
     }
 
     @Override

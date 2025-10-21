@@ -35,12 +35,21 @@ public interface CartRepository extends JpaRepository<Cart, UUID> {
            "WHERE c.id = :cartId")
     Optional<Cart> findByIdWithUser(@Param("cartId") UUID cartId);
     
-    // Cargar carritos de un usuario con todas las relaciones necesarias
+    // Cargar carritos de un usuario que NO estén asociados a ninguna orden
     @Query("SELECT DISTINCT c FROM Cart c " +
            "LEFT JOIN FETCH c.user " +
            "WHERE c.user.id = :userId " +
+           "AND c.id NOT IN (SELECT o.carrito.id FROM Order o WHERE o.carrito IS NOT NULL) " +
            "ORDER BY c.createdAt DESC")
     List<Cart> findByUserIdWithUser(@Param("userId") UUID userId);
+    
+    // Obtener el carrito más reciente de un usuario que NO esté asociado a ninguna orden
+    @Query("SELECT c FROM Cart c " +
+           "LEFT JOIN FETCH c.user " +
+           "WHERE c.user.id = :userId " +
+           "AND c.id NOT IN (SELECT o.carrito.id FROM Order o WHERE o.carrito IS NOT NULL) " +
+           "ORDER BY c.createdAt DESC")
+    Optional<Cart> findLatestCartByUserIdWithoutOrder(@Param("userId") UUID userId);
     
     // Cargar cartProducts para carritos específicos (segunda consulta optimizada)
     @Query("SELECT DISTINCT cp FROM CartProduct cp " +

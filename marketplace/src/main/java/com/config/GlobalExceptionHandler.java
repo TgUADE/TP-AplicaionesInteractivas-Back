@@ -5,7 +5,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -38,6 +37,20 @@ public class GlobalExceptionHandler {
         errorResponse.put("status", HttpStatus.NOT_FOUND.value());
         errorResponse.put("error", "Not Found");
         errorResponse.put("message", ex.getMessage());
+        errorResponse.put("path", request.getRequestURI());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
+    @ExceptionHandler(com.exceptions.UserNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleUserNotFound(
+            com.exceptions.UserNotFoundException ex, HttpServletRequest request) {
+
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("timestamp", LocalDateTime.now());
+        errorResponse.put("status", HttpStatus.NOT_FOUND.value());
+        errorResponse.put("error", "Not Found");
+        errorResponse.put("message", "Usuario no encontrado");
         errorResponse.put("path", request.getRequestURI());
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
