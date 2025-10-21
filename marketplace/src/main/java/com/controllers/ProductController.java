@@ -40,10 +40,12 @@ public class ProductController {
     }
 
     @GetMapping("/{productId}")
-    public ResponseEntity<Product> getProductById(@PathVariable UUID productId) throws ProductNotFoundException {
+    public ResponseEntity<ProductResponse> getProductById(@PathVariable UUID productId) throws ProductNotFoundException {
         Optional<Product> result = productService.getProductById(productId);
         if (result.isPresent()) {
-            return ResponseEntity.ok(result.get());
+            //get product response
+            ProductResponse response = productService.toProductResponse(result.get());
+            return ResponseEntity.ok(response);
         } else {
             throw new ProductNotFoundException();
         }
