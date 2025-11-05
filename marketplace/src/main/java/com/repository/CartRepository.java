@@ -44,11 +44,11 @@ public interface CartRepository extends JpaRepository<Cart, UUID> {
     List<Cart> findByUserIdWithUser(@Param("userId") UUID userId);
     
     // Obtener el carrito más reciente de un usuario que NO esté asociado a ninguna orden
-    @Query("SELECT c FROM Cart c " +
-           "LEFT JOIN FETCH c.user " +
-           "WHERE c.user.id = :userId " +
-           "AND c.id NOT IN (SELECT o.carrito.id FROM Order o WHERE o.carrito IS NOT NULL) " +
-           "ORDER BY c.createdAt DESC")
+    @Query(value = "SELECT c.* FROM cart c " +
+           "WHERE c.user_id = :userId " +
+           "AND c.id NOT IN (SELECT o.cart_id FROM orders o WHERE o.cart_id IS NOT NULL) " +
+           "ORDER BY c.created_at DESC " +
+           "LIMIT 1", nativeQuery = true)
     Optional<Cart> findLatestCartByUserIdWithoutOrder(@Param("userId") UUID userId);
     
     // Cargar cartProducts para carritos específicos (segunda consulta optimizada)
