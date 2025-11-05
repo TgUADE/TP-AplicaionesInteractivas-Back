@@ -56,8 +56,11 @@ public class PromotionServiceImpl implements PromotionService {
             request.getValue(),
             request.getStartDate(),
             request.getEndDate(),
-            product
+            null  // No asignar el producto aquí
         );
+        
+        // Usar el método helper para mantener la consistencia bidireccional
+        product.addPromotion(promotion);
         
         return promotionRepository.save(promotion);
     }
@@ -69,11 +72,18 @@ public class PromotionServiceImpl implements PromotionService {
         Promotion promotion = promotionRepository.findById(promotionId)
             .orElseThrow(() -> new PromotionNotFoundException());
         
-        Product product = productService.getProductById(request.getProductId())
+        Product newProduct = productService.getProductById(request.getProductId())
             .orElseThrow(() -> new ProductNotFoundException());
         
         // Validar la solicitud completa, excluyendo la promoción actual de la validación de conflictos
         validatePromotionRequest(request, promotionId);
+        
+        // Si el producto cambió, actualizar la relación bidireccional
+        if (!promotion.getProduct().getId().equals(newProduct.getId())) {
+            Product oldProduct = promotion.getProduct();
+            oldProduct.removePromotion(promotion);
+            newProduct.addPromotion(promotion);
+        }
         
         promotion.setName(request.getName());
         promotion.setDescription(request.getDescription());
@@ -82,7 +92,6 @@ public class PromotionServiceImpl implements PromotionService {
         promotion.setStartDate(request.getStartDate());
         promotion.setEndDate(request.getEndDate());
         promotion.setActive(request.getActive());
-        promotion.setProduct(product);
         
         return promotionRepository.save(promotion);
     }

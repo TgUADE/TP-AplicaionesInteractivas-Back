@@ -64,6 +64,27 @@ public class Product {
     private List<Promotion> promotions = new ArrayList<>();
 
     /**
+     * Agrega una promoción al producto manteniendo la consistencia bidireccional
+     */
+    public void addPromotion(Promotion promotion) {
+        if (promotions == null) {
+            promotions = new ArrayList<>();
+        }
+        promotions.add(promotion);
+        promotion.setProduct(this);
+    }
+
+    /**
+     * Remueve una promoción del producto manteniendo la consistencia bidireccional
+     */
+    public void removePromotion(Promotion promotion) {
+        if (promotions != null) {
+            promotions.remove(promotion);
+            promotion.setProduct(null);
+        }
+    }
+
+    /**
      * Obtiene el precio actual del producto aplicando promoción si existe una válida
      */
     public double getCurrentPrice() {
