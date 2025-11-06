@@ -21,6 +21,8 @@ public interface CartService {
 
     Cart updateCart(UUID cartId, CartRequest request);
 
+    Cart emptyCart(UUID cartId);
+
     Cart deleteCart(UUID cartId);
 
     List<Cart> findByUserId(UUID userId);

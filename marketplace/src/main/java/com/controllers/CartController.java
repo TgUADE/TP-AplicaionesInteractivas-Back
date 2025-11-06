@@ -97,6 +97,14 @@ public class CartController {
         return ResponseEntity.ok(result);
     }
 
+    //empty cart
+    @PutMapping("/{cartId}/clear")
+    public ResponseEntity<Cart> emptyCart(@PathVariable UUID cartId) {
+        validateCartOwnership(cartId);
+        Cart updatedCart = cartService.emptyCart(cartId);
+        return ResponseEntity.ok(updatedCart);
+    }
+
     @DeleteMapping("/{cartId}")
     public ResponseEntity<Cart> deleteCart(@PathVariable UUID cartId)
             throws CartNotFoundException {

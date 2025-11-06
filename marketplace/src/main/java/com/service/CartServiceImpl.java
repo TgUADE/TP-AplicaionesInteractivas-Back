@@ -92,6 +92,17 @@ public class CartServiceImpl implements CartService {
         return cartRepository.save(existingCart);
     }
 
+
+
+    @Override
+    @Transactional
+    public Cart emptyCart(UUID cartId) {
+        Cart cart = cartRepository.findById(cartId)
+                .orElseThrow(CartNotFoundException::new);
+        cart.getCartProducts().clear();
+        return cartRepository.save(cart);
+    }
+
     @Override
     @Transactional
     public Cart deleteCart(UUID cartId) {
